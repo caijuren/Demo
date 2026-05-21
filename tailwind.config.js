@@ -8,6 +8,9 @@ export default {
       center: true,
     },
     extend: {
+      spacing: {
+        '4.5': '1.125rem',
+      },
       colors: {
         dashboard: {
           bg: "var(--color-bg)",

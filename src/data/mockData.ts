@@ -48,6 +48,7 @@ export const AlertList: AlertItem[] = [
     time: "2026-05-18 14:23:11",
     status: "pending",
     detail: "检测到针对东航金控技术部员工许博的定向钓鱼邮件，发件人冒充技术部负责人，以系统权限升级为由诱导点击恶意链接。邮件附件伪装成《权限申请表.docm》，内含恶意宏代码。许博已点击链接并输入了内部系统账号密码。",
+    source: "mail-security@dhjkholding.com",
   },
   {
     id: "ALT-001-2",
@@ -57,6 +58,7 @@ export const AlertList: AlertItem[] = [
     time: "2026-05-18 14:23:11",
     status: "pending",
     detail: "【AI深度研判版】检测到针对东航金控技术部员工许博的定向钓鱼邮件。发件人冒充技术部负责人，以系统权限升级为由诱导点击恶意链接。许博已点击链接并输入内部系统账号密码。",
+    source: "mail-security@dhjkholding.com",
   },
   {
     id: "ALT-002",
@@ -66,6 +68,7 @@ export const AlertList: AlertItem[] = [
     time: "2026-05-18 14:15:07",
     status: "processing",
     detail: "检测到大量仿冒东航金控 IT 运维中心的系统升级邮件，发件人伪造为 noc@dhjk-finance.com，要求全体员工点击链接更新企业邮箱密码。邮件使用与官方域名 dhjkholding.com 高度相似的欺诈域名 dhjk-finance.com。",
+    source: "noc@dhjk-finance.com",
   },
   {
     id: "ALT-003",
@@ -75,6 +78,7 @@ export const AlertList: AlertItem[] = [
     time: "2026-05-18 13:58:44",
     status: "pending",
     detail: "东航金控风控部员工账号 zhangwei@dhjkholding.com 在凌晨 2:00-4:00 期间从内部文件服务器连续下载了 6.3GB 的客户交易数据和风控策略文档，远超正常工作需要。",
+    source: "zhangwei@dhjkholding.com",
   },
   {
     id: "ALT-004",
@@ -84,6 +88,7 @@ export const AlertList: AlertItem[] = [
     time: "2026-05-18 12:30:22",
     status: "pending",
     detail: "东航金控研发二部开发终端 10.182.4.99 被植入 Cobalt Strike 远控木马，每 60 秒向境外 C2 服务器发送加密心跳包，已确认内网横向扩散至相邻主机 10.182.5.12。",
+    source: "10.182.4.99",
   },
   {
     id: "ALT-005",
@@ -93,6 +98,7 @@ export const AlertList: AlertItem[] = [
     time: "2026-05-18 11:45:33",
     status: "resolved",
     detail: "东航金控资产管理部某员工在工作时间通过公司网络频繁访问被策略封禁的境外赌博和色情类网站，累计访问次数达 63 次/天。已触发上网行为管控策略并自动阻断。",
+    source: "asset-management@dhjkholding.com",
   },
   {
     id: "ALT-006",
@@ -102,6 +108,7 @@ export const AlertList: AlertItem[] = [
     time: "2026-05-18 10:12:18",
     status: "processing",
     detail: "东航金控技术部员工许博的账号 itservice7@kiiik.com 在 45 分钟内遭遇 1,420 次暴力破解攻击，随后从境外荷兰 TOR 匿名节点 IP 成功登录，与许博本人休年假在上海的状态完全不符。",
+    source: "itservice7@kiiik.com",
   },
   {
     id: "ALT-007",
@@ -111,6 +118,7 @@ export const AlertList: AlertItem[] = [
     time: "2026-05-18 09:30:55",
     status: "resolved",
     detail: "东航金控资金管理核心系统检测到从未知设备使用高权限账号 admin@dhjkholding.com 登录，设备指纹不在企业白名单中，操作系统和浏览器版本均与公司标准配置不符。已触发二次验证并成功拦截。",
+    source: "admin@dhjkholding.com",
   },
   {
     id: "ALT-008",
@@ -120,5 +128,6 @@ export const AlertList: AlertItem[] = [
     time: "2026-05-18 08:05:42",
     status: "pending",
     detail: "东航金控 VPN 入口检测到针对 23 个高权限员工账号的暴力破解攻击，攻击来源 IP 分布于俄罗斯和尼日利亚，攻击频率高达每分钟 120 次。已命中 2 个弱密码账号，需紧急排查。",
+    source: "vpn.dhjkholding.com",
   },
 ];

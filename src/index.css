@@ -62,13 +62,6 @@ body::before {
   z-index: 0;
 }
 
-.light body::before,
-body.light-mode::before {
-  background:
-    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(0, 180, 216, 0.05), transparent),
-    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(0, 180, 216, 0.02), transparent);
-}
-
 #root {
   position: relative;
   z-index: 1;

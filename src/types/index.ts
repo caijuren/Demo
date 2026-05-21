@@ -18,4 +18,5 @@ export interface AlertItem {
   time: string;
   status: 'pending' | 'processing' | 'resolved';
   detail: string;
+  source: string;
 }

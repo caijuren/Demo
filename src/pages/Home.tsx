@@ -12,6 +12,11 @@ import {
   Settings,
   Download,
   Brain,
+  Eye,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Loader2,
 } from "lucide-react";
 import AiAnalysisModal from "@/components/AiAnalysisModal";
 import type { AlertItem } from "@/types";
@@ -101,27 +106,42 @@ const incidents: Incident[] = [
   },
 ];
 
-const levelConfig = {
+const levelConfig: Record<string, { bg: string; text: string; border: string; dot: string; accent: string }> = {
   CRITICAL: {
     bg: "bg-red-50",
-    text: "text-red-600",
+    text: "text-red-700",
     border: "border-red-200",
+    dot: "bg-red-500",
+    accent: "border-l-red-500",
   },
   HIGH: {
-    bg: "bg-orange-50",
-    text: "text-orange-600",
-    border: "border-orange-200",
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    border: "border-amber-200",
+    dot: "bg-amber-500",
+    accent: "border-l-amber-400",
   },
   MEDIUM: {
-    bg: "bg-blue-50",
-    text: "text-blue-600",
-    border: "border-blue-200",
+    bg: "bg-sky-50",
+    text: "text-sky-700",
+    border: "border-sky-200",
+    dot: "bg-sky-500",
+    accent: "border-l-sky-400",
   },
   LOW: {
     bg: "bg-slate-50",
     text: "text-slate-600",
     border: "border-slate-200",
+    dot: "bg-slate-400",
+    accent: "",
   },
+};
+
+const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string; bg: string }> = {
+  "研判中": { icon: Loader2, color: "text-blue-600", bg: "bg-blue-50" },
+  "待处理": { icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+  "已处置": { icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
+  "已忽略": { icon: XCircle, color: "text-slate-500", bg: "bg-slate-50" },
 };
 
 const navItems = [
@@ -139,7 +159,6 @@ const configItems = [
   { icon: Settings, label: "系统设置", href: "#" },
 ];
 
-// 转换 incident 为 AlertItem 格式给弹窗使用
 function incidentToAlertItem(incident: Incident): AlertItem {
   return {
     id: incident.id,
@@ -159,6 +178,7 @@ function incidentToAlertItem(incident: Incident): AlertItem {
         : "pending",
     time: incident.time,
     source: incident.source,
+    detail: incident.aiConclusion,
   };
 }
 
@@ -166,19 +186,19 @@ export default function Home() {
   const [selectedAlert, setSelectedAlert] = useState<AlertItem | null>(null);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8fafc]">
+    <div className="flex h-screen overflow-hidden bg-dashboard-bg">
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 bg-white border-r border-[#e2e8f0] flex flex-col">
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <ShieldCheck className="text-white w-5 h-5" />
+      <aside className="w-48 flex-shrink-0 bg-gradient-to-b from-white to-slate-50/80 border-r border-dashboard-border flex flex-col shadow-sm">
+        <div className="px-4 py-5 flex items-center gap-2.5 border-b border-dashboard-border/50">
+          <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-blue-500 rounded-lg flex items-center justify-center shadow-sm shadow-blue-500/20">
+            <ShieldCheck className="text-white w-4 h-4" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            安全事件分析助手
+          <h1 className="text-[13px] font-semibold tracking-tight text-dashboard-text leading-tight">
+            安全事件<br />分析助手
           </h1>
         </div>
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 py-4">
+        <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+          <div className="text-[10px] font-bold text-dashboard-text-dim uppercase tracking-widest px-2.5 pt-3 pb-1.5">
             核心模块
           </div>
           {navItems.map((item) => {
@@ -187,18 +207,18 @@ export default function Home() {
               <a
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${
+                className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-all duration-200 ${
                   item.active
-                    ? "bg-[#f1f5f9] text-blue-600 font-medium border-r-2 border-blue-600"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-blue-50/80 text-blue-700 font-semibold shadow-sm shadow-blue-500/5 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-r"
+                    : "text-dashboard-text-muted hover:bg-dashboard-hover-light hover:text-dashboard-text"
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-[18px] h-[18px] ${item.active ? "text-blue-600" : ""}`} />
                 <span>{item.label}</span>
               </a>
             );
           })}
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 py-4">
+          <div className="text-[10px] font-bold text-dashboard-text-dim uppercase tracking-widest px-2.5 pt-4 pb-1.5">
             配置管理
           </div>
           {configItems.map((item) => {
@@ -207,47 +227,59 @@ export default function Home() {
               <a
                 key={item.label}
                 href={item.href}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-slate-100 transition-colors text-slate-600 hover:text-slate-900"
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] hover:bg-dashboard-hover-light transition-all duration-200 text-dashboard-text-muted hover:text-dashboard-text"
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="w-[18px] h-[18px]" />
                 <span>{item.label}</span>
               </a>
             );
           })}
         </nav>
+        <div className="px-3 py-3 border-t border-dashboard-border/50">
+          <div className="flex items-center gap-2 px-2.5 py-1.5">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-[10px] text-white font-bold shadow-sm">
+              A
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-medium text-dashboard-text truncate">Admin</div>
+              <div className="text-[10px] text-dashboard-text-dim">超级管理员</div>
+            </div>
+          </div>
+        </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-16 bg-white border-b border-[#e2e8f0] flex items-center justify-between px-8">
-          <h2 className="text-lg font-semibold text-slate-900">
+        <header className="h-12 bg-white/80 backdrop-blur-sm border-b border-dashboard-border flex items-center justify-between px-6 relative">
+          <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
+          <h2 className="text-[13px] font-semibold text-dashboard-text">
             统一事件流管理系统
           </h2>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
-              <Download className="w-4 h-4" />
+          <div className="flex items-center gap-2">
+            <button className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 rounded-lg text-[11px] font-medium flex items-center gap-1.5 transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/25 active:scale-[0.98]">
+              <Download className="w-3.5 h-3.5" />
               导出审计报告
             </button>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-5">
           {/* Filter Bar */}
-          <div className="bg-white border border-[#e2e8f0] p-4 rounded-xl mb-6 flex flex-wrap gap-4 items-end shadow-sm">
-            <div className="flex-1 min-w-[200px] space-y-1.5">
-              <label className="text-xs text-slate-500">搜索事件</label>
+          <div className="bg-white border border-dashboard-border p-3.5 rounded-xl mb-4 flex flex-wrap gap-3 items-end shadow-sm">
+            <div className="flex-1 min-w-[180px] space-y-1">
+              <label className="text-[10px] font-semibold text-dashboard-text-dim uppercase tracking-wider">搜索事件</label>
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-dashboard-text-dim w-3.5 h-3.5" />
                 <input
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full bg-slate-50/80 border border-dashboard-border rounded-lg pl-8 pr-3 py-1.5 text-xs text-dashboard-text placeholder:text-dashboard-text-dim focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 h-[32px] transition-all duration-200"
                   placeholder="ID, IP, 资产名称..."
                   type="text"
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs text-slate-500">风险等级</label>
-              <select className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-900">
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-dashboard-text-dim uppercase tracking-wider">风险等级</label>
+              <select className="bg-slate-50/80 border border-dashboard-border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-dashboard-text h-[32px] transition-all duration-200">
                 <option>全部等级</option>
                 <option>Critical (严重)</option>
                 <option>High (高危)</option>
@@ -255,9 +287,9 @@ export default function Home() {
                 <option>Low (低危)</option>
               </select>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs text-slate-500">事件分类</label>
-              <select className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-900">
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-dashboard-text-dim uppercase tracking-wider">事件分类</label>
+              <select className="bg-slate-50/80 border border-dashboard-border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-dashboard-text h-[32px] transition-all duration-200">
                 <option>全部类型</option>
                 <option>密码暴力破解</option>
                 <option>钓鱼邮件</option>
@@ -266,9 +298,9 @@ export default function Home() {
                 <option>数据泄露风险</option>
               </select>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs text-slate-500">处理状态</label>
-              <select className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-900">
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-dashboard-text-dim uppercase tracking-wider">处理状态</label>
+              <select className="bg-slate-50/80 border border-dashboard-border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-dashboard-text h-[32px] transition-all duration-200">
                 <option>全部状态</option>
                 <option>待处理</option>
                 <option>研判中</option>
@@ -276,81 +308,81 @@ export default function Home() {
                 <option>误报忽略</option>
               </select>
             </div>
-            <button className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium h-[38px] transition-colors">
+            <button className="bg-slate-100 hover:bg-slate-200 text-dashboard-text-muted px-3 py-1.5 rounded-lg text-xs font-medium h-[32px] transition-all duration-200 active:scale-[0.98]">
               重置
             </button>
           </div>
 
           {/* Table */}
-          <div className="bg-white border border-[#e2e8f0] rounded-xl overflow-hidden shadow-sm">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
-                <tr>
-                  <th className="px-6 py-4">事件 ID</th>
-                  <th className="px-6 py-4">时间戳</th>
-                  <th className="px-6 py-4">事件名称</th>
-                  <th className="px-6 py-4">源 IP / 账户</th>
-                  <th className="px-6 py-4">风险级别</th>
-                  <th className="px-6 py-4">状态</th>
-                  <th className="px-6 py-4">AI 研判结论</th>
-                  <th className="px-6 py-4 text-right">操作</th>
+          <div className="bg-white border border-dashboard-border rounded-xl overflow-x-auto shadow-sm">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="bg-gradient-to-r from-slate-50 to-slate-50/50 border-b border-dashboard-border">
+                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">事件 ID</th>
+                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">时间戳</th>
+                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider">事件名称</th>
+                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">源 IP / 账户</th>
+                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">风险级别</th>
+                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">状态</th>
+                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">AI 研判结论</th>
+                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider text-right whitespace-nowrap min-w-[160px]">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {incidents.map((incident) => {
+                {incidents.map((incident, index) => {
                   const levelStyle = levelConfig[incident.level];
+                  const statusStyle = statusConfig[incident.status];
+                  const StatusIcon = statusStyle.icon;
+                  const isCritical = incident.level === "CRITICAL";
                   return (
                     <tr
                       key={incident.id}
-                      className="hover:bg-slate-50 transition-colors"
+                      className={`group transition-all duration-200 hover:bg-blue-50/30 ${isCritical ? "border-l-[3px] " + levelStyle.accent : ""} ${isCritical ? "bg-red-50/20" : ""}`}
+                      style={{ animationDelay: `${index * 60}ms` }}
                     >
-                      <td className="px-6 py-4 font-mono text-slate-500">
+                      <td className="px-4 py-2.5 font-mono text-dashboard-text-dim text-[11px] whitespace-nowrap">
                         {incident.id}
                       </td>
-                      <td className="px-6 py-4 text-slate-600">
+                      <td className="px-4 py-2.5 text-dashboard-text-muted whitespace-nowrap font-mono text-[11px]">
                         {incident.time}
                       </td>
-                      <td className="px-6 py-4 font-medium text-slate-900">
+                      <td className="px-4 py-2.5 font-medium text-dashboard-text truncate max-w-[280px]" title={incident.name}>
                         {incident.name}
                       </td>
-                      <td className="px-6 py-4 text-slate-500">
+                      <td className="px-4 py-2.5 text-dashboard-text-muted truncate max-w-[160px] font-mono text-[11px]" title={incident.source}>
                         {incident.source}
                       </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${levelStyle.bg} ${levelStyle.text} border ${levelStyle.border}`}
-                        >
+                      <td className="px-4 py-2.5 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${levelStyle.bg} ${levelStyle.text} border ${levelStyle.border}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${levelStyle.dot} ${isCritical ? "animate-pulse" : ""}`} />
                           {incident.level}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        {incident.status === "研判中" ? (
-                          <span className="flex items-center gap-1.5 text-slate-700">
-                            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                            研判中
-                          </span>
-                        ) : (
-                          <span className="text-slate-700">{incident.status}</span>
-                        )}
+                      <td className="px-4 py-2.5 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium ${statusStyle.bg} ${statusStyle.color}`}>
+                          <StatusIcon className={`w-3 h-3 ${incident.status === "研判中" ? "animate-spin" : ""}`} />
+                          {incident.status}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 text-slate-500">
+                      <td className="px-4 py-2.5 text-dashboard-text-muted max-w-[180px] truncate text-[11px]" title={incident.aiConclusion}>
                         {incident.aiConclusion}
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
                           <a
-                            className="text-blue-600 hover:underline text-sm"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-blue-600 hover:bg-blue-50 transition-all duration-200"
                             href="#"
                           >
-                            详情分析
+                            <Eye className="w-3 h-3" />
+                            详情
                           </a>
                           <button
                             onClick={() =>
                               setSelectedAlert(incidentToAlertItem(incident))
                             }
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all duration-200 bg-[#00b4d8]/10 text-[#00b4d8] border border-[#00b4d8]/20 hover:bg-[#00b4d8]/20 hover:border-[#00b4d8]/40 hover:shadow-lg hover:shadow-[#00b4d8]/10 active:scale-95"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all duration-200 bg-[#00b4d8]/8 text-[#00b4d8] border border-[#00b4d8]/15 hover:bg-[#00b4d8]/15 hover:border-[#00b4d8]/30 hover:shadow-sm hover:shadow-[#00b4d8]/10 active:scale-95"
                           >
-                            <Brain className="w-3.5 h-3.5" />
+                            <Brain className="w-3 h-3" />
                             AI研判
                           </button>
                         </div>
@@ -360,17 +392,14 @@ export default function Home() {
                 })}
               </tbody>
             </table>
-            <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-              <p>展示 1-8 条数据，共计 1,284 条记录</p>
-              <div className="flex items-center gap-2">
-                <button
-                  className="px-3 py-1 bg-slate-100 text-slate-600 rounded hover:bg-slate-200 disabled:opacity-50 transition-colors"
-                  disabled
-                >
+            <div className="px-4 py-2.5 border-t border-dashboard-border flex items-center justify-between text-[11px] text-dashboard-text-dim bg-slate-50/30">
+              <p>展示 1-8 条，共 <span className="font-semibold text-dashboard-text-muted">1,284</span> 条记录</p>
+              <div className="flex items-center gap-1.5">
+                <button className="px-2.5 py-1 bg-white border border-dashboard-border text-dashboard-text-muted rounded-md hover:bg-slate-50 disabled:opacity-40 transition-all duration-200 text-[11px]" disabled>
                   上一页
                 </button>
-                <span className="text-slate-600">1 / 161</span>
-                <button className="px-3 py-1 bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors">
+                <span className="px-2 text-dashboard-text-muted font-medium">1 / 161</span>
+                <button className="px-2.5 py-1 bg-white border border-dashboard-border text-dashboard-text-muted rounded-md hover:bg-slate-50 transition-all duration-200 text-[11px]">
                   下一页
                 </button>
               </div>
