@@ -193,8 +193,8 @@ export default function Home() {
           <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-blue-500 rounded-lg flex items-center justify-center shadow-sm shadow-blue-500/20">
             <ShieldCheck className="text-white w-4 h-4" />
           </div>
-          <h1 className="text-[13px] font-semibold tracking-tight text-dashboard-text leading-tight">
-            安全事件<br />分析助手
+          <h1 className="text-sm font-semibold tracking-tight text-dashboard-text whitespace-nowrap">
+            安全事件分析助手
           </h1>
         </div>
         <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
@@ -207,7 +207,7 @@ export default function Home() {
               <a
                 key={item.label}
                 href={item.href}
-                className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-all duration-200 ${
+                className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all duration-200 ${
                   item.active
                     ? "bg-blue-50/80 text-blue-700 font-semibold shadow-sm shadow-blue-500/5 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-r"
                     : "text-dashboard-text-muted hover:bg-dashboard-hover-light hover:text-dashboard-text"
@@ -227,7 +227,7 @@ export default function Home() {
               <a
                 key={item.label}
                 href={item.href}
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] hover:bg-dashboard-hover-light transition-all duration-200 text-dashboard-text-muted hover:text-dashboard-text"
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs hover:bg-dashboard-hover-light transition-all duration-200 text-dashboard-text-muted hover:text-dashboard-text"
               >
                 <Icon className="w-[18px] h-[18px]" />
                 <span>{item.label}</span>
@@ -252,11 +252,11 @@ export default function Home() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-12 bg-white/80 backdrop-blur-sm border-b border-dashboard-border flex items-center justify-between px-6 relative">
           <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
-          <h2 className="text-[13px] font-semibold text-dashboard-text">
+          <h2 className="text-sm font-semibold text-dashboard-text">
             统一事件流管理系统
           </h2>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 rounded-lg text-[11px] font-medium flex items-center gap-1.5 transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/25 active:scale-[0.98]">
+            <button className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/25 active:scale-[0.98]">
               <Download className="w-3.5 h-3.5" />
               导出审计报告
             </button>
@@ -267,7 +267,7 @@ export default function Home() {
           {/* Filter Bar */}
           <div className="bg-white border border-dashboard-border p-3.5 rounded-xl mb-4 flex flex-wrap gap-3 items-end shadow-sm">
             <div className="flex-1 min-w-[180px] space-y-1">
-              <label className="text-[10px] font-semibold text-dashboard-text-dim uppercase tracking-wider">搜索事件</label>
+              <label className="text-[11px] font-semibold text-dashboard-text-dim uppercase tracking-wider">搜索事件</label>
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-dashboard-text-dim w-3.5 h-3.5" />
                 <input
@@ -278,7 +278,7 @@ export default function Home() {
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-semibold text-dashboard-text-dim uppercase tracking-wider">风险等级</label>
+              <label className="text-[11px] font-semibold text-dashboard-text-dim uppercase tracking-wider">风险等级</label>
               <select className="bg-slate-50/80 border border-dashboard-border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-dashboard-text h-[32px] transition-all duration-200">
                 <option>全部等级</option>
                 <option>Critical (严重)</option>
@@ -288,7 +288,7 @@ export default function Home() {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-semibold text-dashboard-text-dim uppercase tracking-wider">事件分类</label>
+              <label className="text-[11px] font-semibold text-dashboard-text-dim uppercase tracking-wider">事件分类</label>
               <select className="bg-slate-50/80 border border-dashboard-border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-dashboard-text h-[32px] transition-all duration-200">
                 <option>全部类型</option>
                 <option>密码暴力破解</option>
@@ -299,7 +299,7 @@ export default function Home() {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-semibold text-dashboard-text-dim uppercase tracking-wider">处理状态</label>
+              <label className="text-[11px] font-semibold text-dashboard-text-dim uppercase tracking-wider">处理状态</label>
               <select className="bg-slate-50/80 border border-dashboard-border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-dashboard-text h-[32px] transition-all duration-200">
                 <option>全部状态</option>
                 <option>待处理</option>
@@ -318,14 +318,14 @@ export default function Home() {
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="bg-gradient-to-r from-slate-50 to-slate-50/50 border-b border-dashboard-border">
-                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">事件 ID</th>
-                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">时间戳</th>
-                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider">事件名称</th>
-                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">源 IP / 账户</th>
-                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">风险级别</th>
-                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">状态</th>
-                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">AI 研判结论</th>
-                  <th className="px-4 py-2.5 text-[10px] font-bold text-dashboard-text-dim uppercase tracking-wider text-right whitespace-nowrap min-w-[160px]">操作</th>
+                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">事件 ID</th>
+                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">时间戳</th>
+                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider">事件名称</th>
+                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">源 IP / 账户</th>
+                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap min-w-[80px]">风险级别</th>
+                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">状态</th>
+                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">AI 研判结论</th>
+                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider text-right whitespace-nowrap min-w-[160px]">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

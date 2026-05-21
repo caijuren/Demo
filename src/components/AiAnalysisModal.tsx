@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Brain, Shield, Download, Clock, Loader2, CheckCircle2 } from "lucide-react";
+import { X, Brain, Shield, Download, Clock, Loader2, CheckCircle2, Zap } from "lucide-react";
 import type { AlertItem } from "@/types";
 
 interface AiAnalysisModalProps {
@@ -352,6 +352,14 @@ export default function AiAnalysisModal({ alert, onClose }: AiAnalysisModalProps
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#475569] bg-slate-100 hover:bg-slate-200 transition-all duration-200">
+              <Download className="w-3.5 h-3.5" />
+              导出报告
+            </button>
+            <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/25 transition-all duration-200 active:scale-[0.98]">
+              <Zap className="w-3.5 h-3.5" />
+              一键处置
+            </button>
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg text-[#94a3b8] hover:text-[#475569] hover:bg-gray-100 transition-colors"
