@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-bg: #f8fafc;
+  --color-card: #ffffff;
+  --color-modal: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-dim: #94a3b8;
+  --color-hover: rgba(0, 0, 0, 0.02);
+  --color-hover-light: rgba(0, 0, 0, 0.05);
+  --color-overlay: rgba(0, 0, 0, 0.3);
+  --color-tag-bg: rgba(0, 0, 0, 0.05);
+  --color-thinking-bar: #f8fafc;
+}
+
+.light {
+  --color-bg: #0a0e1a;
+  --color-card: #111827;
+  --color-modal: #0f1729;
+  --color-border: #1e293b;
+  --color-text: #e2e8f0;
+  --color-text-muted: #94a3b8;
+  --color-text-dim: #64748b;
+  --color-hover: rgba(255, 255, 255, 0.02);
+  --color-hover-light: rgba(255, 255, 255, 0.05);
+  --color-overlay: rgba(0, 0, 0, 0.7);
+  --color-tag-bg: rgba(0, 0, 0, 0.3);
+  --color-thinking-bar: #0f1729;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -14,10 +44,11 @@ html {
 
 body {
   font-family: "Plus Jakarta Sans", sans-serif;
-  background-color: #0a0e1a;
-  color: #e2e8f0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 body::before {
@@ -25,10 +56,17 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(0, 180, 216, 0.08), transparent),
-    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(0, 180, 216, 0.04), transparent);
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(0, 180, 216, 0.05), transparent),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(0, 180, 216, 0.02), transparent);
   pointer-events: none;
   z-index: 0;
+}
+
+.light body::before,
+body.light-mode::before {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(0, 180, 216, 0.05), transparent),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(0, 180, 216, 0.02), transparent);
 }
 
 #root {
@@ -134,6 +172,37 @@ body::before {
     }
   }
 
+  @keyframes streamSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes thinkingDot {
+    0%, 80%, 100% {
+      opacity: 0;
+      transform: translateY(0);
+    }
+    40% {
+      opacity: 1;
+      transform: translateY(-3px);
+    }
+  }
+
+  @keyframes cursorBlink {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
   }
@@ -152,6 +221,18 @@ body::before {
 
   .critical-pulse {
     animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  .animate-stream-in {
+    animation: streamSlideIn 0.5s ease-out both;
+  }
+
+  .typing-cursor {
+    animation: cursorBlink 0.8s step-end infinite;
+  }
+
+  .animate-thinking-dot {
+    animation: thinkingDot 1.4s ease-in-out infinite;
   }
 }
 

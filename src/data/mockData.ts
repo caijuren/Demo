@@ -42,12 +42,21 @@ export const dashboardMetrics: DashboardMetric[] = [
 export const AlertList: AlertItem[] = [
   {
     id: "ALT-001",
-    name: "仿冒东航金控财务部邮件",
+    name: "针对东航金控技术部许博的钓鱼邮件",
     category: "phishing",
     level: "critical",
     time: "2026-05-18 14:23:11",
     status: "pending",
-    detail: "检测到伪造东航金控财务部的钓鱼邮件，发件人冒充财务总监张明华，向资金管理部发送紧急跨行转账请求，附件包含伪装成《付款审批单.xlsm》的恶意宏文件。已有 3 名员工点击了附件链接。",
+    detail: "检测到针对东航金控技术部员工许博的定向钓鱼邮件，发件人冒充技术部负责人，以系统权限升级为由诱导点击恶意链接。邮件附件伪装成《权限申请表.docm》，内含恶意宏代码。许博已点击链接并输入了内部系统账号密码。",
+  },
+  {
+    id: "ALT-001-2",
+    name: "针对东航金控技术部许博的二次钓鱼邮件",
+    category: "phishing",
+    level: "critical",
+    time: "2026-05-18 14:23:11",
+    status: "pending",
+    detail: "【AI深度研判版】检测到针对东航金控技术部员工许博的定向钓鱼邮件。发件人冒充技术部负责人，以系统权限升级为由诱导点击恶意链接。许博已点击链接并输入内部系统账号密码。",
   },
   {
     id: "ALT-002",
@@ -69,12 +78,12 @@ export const AlertList: AlertItem[] = [
   },
   {
     id: "ALT-004",
-    name: "东航金控内网主机访问恶意域名",
+    name: "东航金控研发内网主机远控木马C2通信告警",
     category: "internet-behavior",
     level: "critical",
     time: "2026-05-18 12:30:22",
     status: "pending",
-    detail: "东航金控内网终端 10.88.12.105（所属部门：国际业务部）在过去 1 小时内频繁尝试连接已知恶意域名列表中的 4 个域名，其中 2 个与 APT 组织相关联。该主机疑似已被植入后门程序。",
+    detail: "东航金控研发二部开发终端 10.182.4.99 被植入 Cobalt Strike 远控木马，每 60 秒向境外 C2 服务器发送加密心跳包，已确认内网横向扩散至相邻主机 10.182.5.12。",
   },
   {
     id: "ALT-005",
@@ -87,12 +96,12 @@ export const AlertList: AlertItem[] = [
   },
   {
     id: "ALT-006",
-    name: "东航金控 CFO 邮箱异地异常登录",
+    name: "东航金控技术部许博账号境外暴力破解登录",
     category: "abnormal-login",
     level: "critical",
     time: "2026-05-18 10:12:18",
     status: "processing",
-    detail: "东航金控 CFO 账号 cfo@dhjkholding.com 在 8 分钟内先后从上海总部 IP 和俄罗斯莫斯科 IP 登录企业邮箱系统，登录 IP 归属地异常。该账号拥有财务审批系统最高权限，存在严重安全风险。",
+    detail: "东航金控技术部员工许博的账号 itservice7@kiiik.com 在 45 分钟内遭遇 1,420 次暴力破解攻击，随后从境外荷兰 TOR 匿名节点 IP 成功登录，与许博本人休年假在上海的状态完全不符。",
   },
   {
     id: "ALT-007",

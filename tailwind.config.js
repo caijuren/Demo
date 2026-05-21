@@ -10,16 +10,23 @@ export default {
     extend: {
       colors: {
         dashboard: {
-          bg: "#0a0e1a",
-          card: "#111827",
-          border: "#1e293b",
+          bg: "var(--color-bg)",
+          card: "var(--color-card)",
+          modal: "var(--color-modal)",
+          border: "var(--color-border)",
           "border-glow": "#00b4d8",
           critical: "#ff4d6d",
           warning: "#f9a826",
           info: "#00b4d8",
           success: "#52b788",
-          text: "#e2e8f0",
-          "text-muted": "#94a3b8",
+          text: "var(--color-text)",
+          "text-muted": "var(--color-text-muted)",
+          "text-dim": "var(--color-text-dim)",
+          hover: "var(--color-hover)",
+          "hover-light": "var(--color-hover-light)",
+          overlay: "var(--color-overlay)",
+          "tag-bg": "var(--color-tag-bg)",
+          "thinking-bar": "var(--color-thinking-bar)",
         },
       },
       fontFamily: {
