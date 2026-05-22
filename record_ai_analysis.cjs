@@ -18,11 +18,11 @@ const OUTPUT_FINAL = path.join(VIDEO_DIR, '钓鱼邮件AI研判.mp4');
   });
 
   const context = await browser.newContext({
-    viewport: { width: 1920, height: 1200 },
-    deviceScaleFactor: 1,
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
     recordVideo: {
       dir: VIDEO_DIR,
-      size: { width: 1920, height: 1200 },
+      size: { width: 2880, height: 1800 },
     },
   });
 
@@ -201,7 +201,7 @@ const OUTPUT_FINAL = path.join(VIDEO_DIR, '钓鱼邮件AI研判.mp4');
     console.log(`Using video file: ${files[0].name}`);
     try {
       execSync(
-        `ffmpeg -i "${srcPath}" -c:v libx264 -preset fast -crf 18 -movflags +faststart -y "${OUTPUT_FINAL}"`,
+        `ffmpeg -i "${srcPath}" -vf "scale=3840:-2, crop=3840:2160:(iw-3840)/2:(ih-2160)/2" -c:v libx264 -preset fast -crf 18 -movflags +faststart -y "${OUTPUT_FINAL}"`,
         { stdio: 'inherit' }
       );
       console.log(`Video saved to: ${OUTPUT_FINAL}`);

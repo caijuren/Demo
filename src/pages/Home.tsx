@@ -19,6 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import AiAnalysisModal from "@/components/AiAnalysisModal";
+import AiChat from "@/components/AiChat";
 import type { AlertItem } from "@/types";
 
 interface Incident {
@@ -144,12 +145,14 @@ const statusConfig: Record<string, { icon: React.ComponentType<{ className?: str
   "已忽略": { icon: XCircle, color: "text-slate-500", bg: "bg-slate-50" },
 };
 
-const navItems = [
-  { icon: LayoutDashboard, label: "工作台", href: "#", active: false },
-  { icon: AlertCircle, label: "事件中心", href: "#", active: true },
-  { icon: Search, label: "调查分析", href: "#", active: false },
-  { icon: Server, label: "资产清单", href: "#", active: false },
-  { icon: MessageSquare, label: "AI 问答", href: "#", active: false },
+type PageKey = "events" | "ai-chat";
+
+const navItems: { icon: React.ComponentType<{ className?: string }>; label: string; page: PageKey }[] = [
+  { icon: LayoutDashboard, label: "工作台", page: "events" },
+  { icon: AlertCircle, label: "事件中心", page: "events" },
+  { icon: Search, label: "调查分析", page: "events" },
+  { icon: Server, label: "资产清单", page: "events" },
+  { icon: MessageSquare, label: "AI 问答", page: "ai-chat" },
 ];
 
 const configItems = [
@@ -184,6 +187,7 @@ function incidentToAlertItem(incident: Incident): AlertItem {
 
 export default function Home() {
   const [selectedAlert, setSelectedAlert] = useState<AlertItem | null>(null);
+  const [currentPage, setCurrentPage] = useState<PageKey>("events");
 
   return (
     <div className="flex h-screen overflow-hidden bg-dashboard-bg">
@@ -203,19 +207,20 @@ export default function Home() {
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
+            const isActive = currentPage === item.page;
             return (
-              <a
+              <button
                 key={item.label}
-                href={item.href}
-                className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all duration-200 ${
-                  item.active
+                onClick={() => setCurrentPage(item.page)}
+                className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all duration-200 w-full text-left ${
+                  isActive
                     ? "bg-blue-50/80 text-blue-700 font-semibold shadow-sm shadow-blue-500/5 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-r"
                     : "text-dashboard-text-muted hover:bg-dashboard-hover-light hover:text-dashboard-text"
                 }`}
               >
-                <Icon className={`w-[18px] h-[18px] ${item.active ? "text-blue-600" : ""}`} />
+                <Icon className={`w-[18px] h-[18px] ${isActive ? "text-blue-600" : ""}`} />
                 <span>{item.label}</span>
-              </a>
+              </button>
             );
           })}
           <div className="text-[10px] font-bold text-dashboard-text-dim uppercase tracking-widest px-2.5 pt-4 pb-1.5">
@@ -248,9 +253,11 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-12 bg-white/80 backdrop-blur-sm border-b border-dashboard-border flex items-center justify-between px-6 relative">
+      {currentPage === "ai-chat" ? (
+         <AiChat />
+       ) : (
+         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <header className="h-12 bg-white/80 backdrop-blur-sm border-b border-dashboard-border flex items-center justify-between px-6 relative">
           <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
           <h2 className="text-sm font-semibold text-dashboard-text">
             统一事件流管理系统
@@ -405,8 +412,9 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
-      </main>
+          </div>
+        </main>
+      )}
 
       <AiAnalysisModal
         alert={selectedAlert}
