@@ -236,4 +236,9 @@ body::before {
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  .safari-blur {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
 }

@@ -2,13 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import {
   Send,
   Bot,
+  Loader2,
   Sparkles,
   Slash,
   Lightbulb,
   AlertCircle,
   Search,
   Shield,
-  Globe,
   MessageSquare,
   User,
 } from "lucide-react";
@@ -20,8 +20,6 @@ interface Message {
 }
 
 const suggestions = [
-  { icon: Search, label: "10.71.18.210是谁的终端IP?" },
-  { icon: Globe, label: "IT监控平台访问地址是多少?" },
   { icon: Lightbulb, label: "安全运维最佳实践" },
   { icon: Slash, label: "钓鱼邮件识别要点" },
   { icon: AlertCircle, label: "如何识别钓鱼邮件?" },
@@ -30,8 +28,6 @@ const suggestions = [
 ];
 
 const suggestionIcons: Record<string, string> = {
-  "10.71.18.210是谁的终端IP?": "#8b5cf6",
-  "IT监控平台访问地址是多少?": "#06b6d4",
   "安全运维最佳实践": "#10b981",
   "钓鱼邮件识别要点": "#ef4444",
   "如何识别钓鱼邮件?": "#6366f1",
@@ -595,7 +591,7 @@ export default function AiChat() {
       </div>
 
       {/* ── Input area ── */}
-      <div className="relative bg-white/95 backdrop-blur-sm border-t border-slate-200/60 shadow-[0_-1px_6px_-1px_rgba(0,0,0,0.04)]">
+      <div className="relative bg-white/95 safari-blur border-t border-slate-200/60 shadow-[0_-1px_6px_-1px_rgba(0,0,0,0.04)]">
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
         <div className="max-w-3xl mx-auto px-4 md:px-6 py-3.5">
           <div className="relative flex items-end gap-2">
