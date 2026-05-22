@@ -20,7 +20,8 @@ interface Message {
 }
 
 const suggestions = [
-  { icon: Globe, label: "最新威胁情报摘要" },
+  { icon: Search, label: "10.71.18.210是谁的终端IP?" },
+  { icon: Globe, label: "IT监控平台访问地址是多少?" },
   { icon: Lightbulb, label: "安全运维最佳实践" },
   { icon: Slash, label: "钓鱼邮件识别要点" },
   { icon: AlertCircle, label: "如何识别钓鱼邮件?" },
@@ -29,7 +30,8 @@ const suggestions = [
 ];
 
 const suggestionIcons: Record<string, string> = {
-  "最新威胁情报摘要": "#f59e0b",
+  "10.71.18.210是谁的终端IP?": "#8b5cf6",
+  "IT监控平台访问地址是多少?": "#06b6d4",
   "安全运维最佳实践": "#10b981",
   "钓鱼邮件识别要点": "#ef4444",
   "如何识别钓鱼邮件?": "#6366f1",
@@ -54,6 +56,27 @@ PAynKront2tW/1l1Dr LGP2+CK00VmQqT xz jrKCNWL0epgf Lzg+e/9zAuRu04pkTJETwjqtNpLHa 
 **管理员/负责人:** 管理员为张博
 
 **过保时间:** 过保日期为2029-09-25。`,
+
+  "10.71.18.210是谁的终端IP?": `根据 CMDB 终端资产数据，10.71.18.210 归属信息如下：
+
+| 归属信息项 | 具体内容 |
+|-----------|---------|
+| 责任人 | 孙秀娟 |
+| 终端名称 | JK-0-XZ-0011 |
+| 终端分组 | 全网终端/金控云桌面 |
+| 终端状态 | 在线(正常运行) |
+| 操作系统 | Windows 10 Enterprise (已激活) |`,
+
+  "IT监控平台访问地址是多少?": `IT监控平台的访问地址为：\`http://10.71.160.10:8088/portal\`
+
+> 该信息提取自您上传的《标准应用资产.xlsx》文件中「标准应用」工作表的对应条目，完整行信息为：
+
+| 归属信息项 | 具体内容 |
+|-----------|---------|
+| 资源名称 | IT监控平台 |
+| IP地址/访问地址 | \`http://10.71.160.10:8088/portal\` |
+| URL可用性 | 正常 |
+| 响应时间 | — |`,
 
   "近期有哪些高危事件？": `根据安全事件态势感知平台的最新数据，以下是近期高危安全事件汇总：
 
@@ -348,10 +371,18 @@ function MarkdownText({ content }: { content: string }) {
 // ── Main Component ──────────────────────────────────────────
 
 export default function AiChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const STORAGE_KEY = "ai_chat_messages";
+
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
-  const [askedQuestions, setAskedQuestions] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -368,6 +399,12 @@ export default function AiChat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isThinking, thinkingStep]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ai_chat_messages", JSON.stringify(messages));
+    } catch { /* ignore */ }
+  }, [messages]);
 
   useEffect(() => {
     if (!isThinking) {
@@ -390,7 +427,6 @@ export default function AiChat() {
   function submitQuestion(question: string) {
     const q = question.trim();
     if (!q || isThinking) return;
-    setAskedQuestions(prev => new Set(prev).add(q));
     const userMsg: Message = { id: generateId(), role: "user", content: q };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
@@ -402,6 +438,8 @@ export default function AiChat() {
       "主机安全防护软件的序列号是多少?授权有效期到何时?",
       "堡垒机设备的授权有效期到何时、维保有效期到何时?",
       "aTrust-1000-B1050C在机房的哪个位置?管理员或负责人是谁?过保时间到多少?",
+      "10.71.18.210是谁的终端IP?",
+      "IT监控平台访问地址是多少?",
     ];
     const delay = cmdbQuestions.includes(q) ? 5000 + Math.random() * 1500 : 2000 + Math.random() * 1000;
     setTimeout(() => {
@@ -467,7 +505,7 @@ export default function AiChat() {
 
               <div className="w-full max-w-xl">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {suggestions.filter(s => !askedQuestions.has(s.label)).map(({ icon: Icon, label }) => {
+                  {suggestions.map(({ icon: Icon, label }) => {
                     const accent = suggestionIcons[label] || "#06b6d4";
                     return (
                       <button
@@ -519,19 +557,23 @@ export default function AiChat() {
                     </div>
 
                     {/* Bubble */}
-                    <div className={`max-w-[78%] min-w-0 ${msg.role === "user" ? "flex justify-end" : ""}`}>
-                      {msg.role === "user" ? (
+                    {msg.role === "user" ? (
+                      <div className="max-w-[78%] flex justify-end">
                         <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md px-4 py-2.5 shadow-md shadow-blue-200/50">
                           <p className="text-sm leading-relaxed font-medium break-words">{msg.content}</p>
                         </div>
-                      ) : showThinking ? (
-                        thinkingBubble
-                      ) : msg.content ? (
+                      </div>
+                    ) : showThinking ? (
+                      <div className="w-[75%]">
+                        {thinkingBubble}
+                      </div>
+                    ) : msg.content ? (
+                      <div className="w-[75%]">
                         <div className="bg-emerald-50/80 border border-emerald-100/60 rounded-2xl rounded-tl-md px-5 py-4 shadow-sm shadow-emerald-100/30 break-words">
                           <MarkdownText content={msg.content} />
                         </div>
-                      ) : null}
-                    </div>
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}
