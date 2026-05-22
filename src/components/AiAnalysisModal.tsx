@@ -513,8 +513,6 @@ export default function AiAnalysisModal({ alert, onClose }: AiAnalysisModalProps
     'daiying    ssh:notty 185.220.101.47  Fri May 15 09:14 - 09:14  (00:00)',
     'itservice7 ssh:notty 185.220.101.47  Fri May 15 09:14 - 09:14  (00:00)',
     '---',
-    '$ echo "分析完成 — 累计失败登录 157 次，关联攻击目标 3 个账号"',
-    '分析完成 — 累计失败登录 157 次，关联攻击目标 3 个账号',
   ];
 
   const section1: StreamItem[] = alert ? [
@@ -532,9 +530,12 @@ export default function AiAnalysisModal({ alert, onClose }: AiAnalysisModalProps
     { section: "detail", label: "事件来源", detail: "态势感知平台" },
     {
       section: "detail",
-      label: "",
-      detail: "试错频率0.18秒/次，远超人类操作极限（通常>2秒/次），同一IP持续不间断密集组合，与《2025网络安全手册》中「异常操作行为模式」判定吻合",
-      highlight: 'red',
+      label: "异常行为判定",
+      type: 'table',
+      tableData: [
+        { key: "试错频率", value: "0.18秒/次，远超人类操作极限（通常>2秒/次）" },
+        { key: "攻击模式", value: "同一IP持续不间断密集组合，4秒内发起超过20次登录尝试，符合自动化字典攻击特征" },
+      ],
     },
     {
       section: "detail",
@@ -544,8 +545,6 @@ export default function AiAnalysisModal({ alert, onClose }: AiAnalysisModalProps
         { key: "邮箱账号", value: "itservice7@kiiik.com" },
         { key: "员工姓名", value: "许博" },
         { key: "所属部门", value: "基础运维部" },
-        { key: "职位", value: "运维工程师" },
-        { key: "账号权限等级", value: "IT关键岗位" },
       ],
     },
     {
@@ -556,33 +555,30 @@ export default function AiAnalysisModal({ alert, onClose }: AiAnalysisModalProps
         { key: "登录失败次数", value: "60次" },
         { key: "发生时间段", value: "2026-05-15 09:14:37 - 09:15:41" },
         { key: "平均间隔", value: "0.18秒/次（最小0.05秒）" },
-        { key: "密码变化特征", value: "字典攻击模式，含常见组合及姓名拼音+数字变体" },
         { key: "登录特征", value: "连续>20次" },
       ],
-    },
-    {
-      section: "detail",
-      label: "",
-      type: 'block',
-      highlight: 'red',
-      detail: "试错频率0.18秒/次，远超人类操作极限（通常>2秒/次）\n同一IP持续不间断密集组合\n与《2025网络安全手册》中「异常操作行为模式」判定吻合",
     },
     {
       section: "detail",
       label: "3. 密码策略调查",
       type: 'table',
       tableData: [
-        { key: "上次修改时间", value: "2025-12-01" },
-        { key: "规定到期日", value: "2026-03-01（已超期75天）" },
-        { key: "风险提示", value: "符合12位+大小写+特殊字符，但密码已过期" },
+        { key: "上次修改时间", value: "2026-03-20" },
+        { key: "规定到期日", value: "2026-06-18（临近过期）" },
+        { key: "风险提示", value: "符合12位+大小写+特殊字符，但密码临近过期" },
       ],
     },
     {
       section: "detail",
-      label: "4. 近3个月类似试错情况调查",
-      type: 'block',
-      highlight: 'red',
-      detail: "2026-02-10：同一IP，失败42次，攻击时间22:15-22:45\n2026-02-22：同一IP，失败55次，攻击时间23:00-23:30\n2026-03-09：同一IP，失败60次，攻击时间22:00-23:00\n\n近90天同一IP累计试错157次，失败次数呈递增趋势（42→55→60次），时间规律一致，均集中在22:00后",
+      label: "4. 近7天类似行为调查",
+      type: 'table',
+      tableData: [
+        { key: "2026-05-09", value: "同一IP，失败38次，攻击时间22:10-22:40" },
+        { key: "2026-05-11", value: "同一IP，失败45次，攻击时间22:30-23:00" },
+        { key: "2026-05-13", value: "同一IP，失败52次，攻击时间22:00-22:50" },
+        { key: "2026-05-15（今日）", value: "同一IP，失败60次，攻击时间09:14开始" },
+        { key: "累计趋势", value: "近7天同一IP累计试错195次，攻击频率逐日攀升（38→45→52→60次），时间规律一致，均集中在22:00后非工作时段" },
+      ],
     },
     {
       section: "detail",
@@ -597,20 +593,11 @@ export default function AiAnalysisModal({ alert, onClose }: AiAnalysisModalProps
     },
     {
       section: "detail",
-      label: "6. 试错IP是否针对其他账号",
+      label: "6. 关联调查——是否有其他账号收到类似攻击",
       type: 'table',
       tableData: [
-        { key: "yupepeng@kiiik.com", value: "失败37次" },
-        { key: "daiying@kiiik.com", value: "失败20次" },
-        { key: "其他账号", value: "未发现" },
+        { key: "调查结果", value: "未发现" },
       ],
-    },
-    {
-      section: "detail",
-      label: "",
-      type: 'block',
-      highlight: 'red',
-      detail: "同一IP同时对企业2个账号存在类似试错行为，非单一账号的偶发情况",
     },
     {
       section: "detail",
@@ -621,14 +608,8 @@ export default function AiAnalysisModal({ alert, onClose }: AiAnalysisModalProps
         { key: "最近一次登录", value: "2026-05-14 18:23:17，IP归属上海市，正常" },
         { key: "外发行为", value: "未发生大量邮件外发/批量附件发送" },
         { key: "其他异常操作", value: "未发现（关联行为管理日志未发现异常访问）" },
+        { key: "结论", value: "截至本次调查时刻，账号未成功登录，发送行为与历史基线一致，暂未发现异常" },
       ],
-    },
-    {
-      section: "detail",
-      label: "",
-      type: 'block',
-      highlight: 'blue',
-      detail: "截至本次调查时刻，账号未成功登录，发送行为与历史基线一致，暂未发现异常",
     },
     {
       section: "detail",
@@ -644,13 +625,18 @@ export default function AiAnalysisModal({ alert, onClose }: AiAnalysisModalProps
       label: "",
       type: 'block',
       highlight: 'red',
-      detail: "该邮箱正遭受来自美国IP 185.220.101.47 的持续性自动化大量登录失败攻击。失败登录累计157次，失败次数呈递增趋势，且时间规律一致，集中于22:00后非工作时段。\n\n单次试错间隔最小0.05秒，平均0.18秒，远低于人类正常操作基线。与《2025网络安全手册》中「异常操作行为模式」判定标准高度吻合，置信度97%。该IP同时对企业另外2个账号存在类似试错记录。\n\n判定该账号正遭受「持续性自动化暴力破解」攻击，性质为高危。截至调查时刻，攻击未成功登录，但账号密码已超期75天未修改，账号为高权限岗位，需立即干预。",
+      detail: "该邮箱正遭受来自美国IP 185.220.101.47 的持续性自动化大量登录失败攻击。失败登录累计157次，失败次数呈递增趋势，且时间规律一致，集中于22:00后非工作时段。\n\n单次试错间隔最小0.05秒，平均0.18秒，远低于人类正常操作基线。与《东航金控有限责任公司网络安全管理手册（2024年版）【东航金发〔2024〕28号】》中「异常操作行为模式」判定标准高度吻合，置信度97%。该IP同时对企业另外2个账号存在类似试错记录。\n\n判定该账号正遭受「持续性自动化暴力破解」攻击，性质为高危。截至调查时刻，攻击未成功登录，但账号密码临近过期未修改，账号为高权限岗位，需立即干预。",
     },
     { section: "conclusion", label: "邮件安全 - 暴力破解", detail: "高危 | 累计试错157次 | 平均间隔0.1秒 | 关联攻击目标3个账号" },
-    { section: "conclusion", label: "处置建议-立即执行", detail: "通知许博修改高强度密码并开启MFA；封禁IP 185.220.101.47" },
-    { section: "conclusion", label: "处置建议-3天跟进", detail: "同步通知yupepeng、daiying账号立即修改密码" },
-    { section: "conclusion", label: "处置建议-7天跟进", detail: "邮件管理员持续监控itservice7账号，确认无异常外发" },
-    { section: "conclusion", label: "处置建议-长期", detail: "攻击IP及特征加入知识图谱，同类攻击下次直接触发高危告警" },
+    {
+      section: "conclusion",
+      label: "处置建议",
+      type: 'table',
+      tableData: [
+        { key: "立即执行", value: "通知许博修改高强度密码并开启MFA；封禁IP 185.220.101.47" },
+        { key: "长期跟进", value: "攻击IP及特征加入知识图谱，同类攻击下次直接触发高危告警" },
+      ],
+    },
   ] : [];
 
   const section3Placeholder: StreamItem = { section: "log", label: "", detail: "" };
@@ -766,7 +752,7 @@ export default function AiAnalysisModal({ alert, onClose }: AiAnalysisModalProps
           />
 
           <StreamSection
-            label="事件详情"
+            label="事件详情分析"
             items={section2}
             currentIndex={currentIndex}
             startIdx={sec2Start}
