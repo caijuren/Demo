@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  MessageSquare,
   Send,
   Bot,
-  User,
   Sparkles,
   Slash,
   Lightbulb,
@@ -11,27 +9,52 @@ import {
   Search,
   Shield,
   Globe,
-  RefreshCw,
+  MessageSquare,
+  User,
 } from "lucide-react";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
-  timestamp: string;
-  isStreaming?: boolean;
 }
 
 const suggestions = [
-  { icon: AlertCircle, label: "近期有哪些高危事件？", color: "text-red-500", bg: "bg-red-50" },
-  { icon: Shield, label: "如何防范暴力破解攻击？", color: "text-blue-500", bg: "bg-blue-50" },
-  { icon: Search, label: "分析IP 185.220.101.47", color: "text-amber-500", bg: "bg-amber-50" },
-  { icon: Globe, label: "最新威胁情报摘要", color: "text-cyan-500", bg: "bg-cyan-50" },
-  { icon: Lightbulb, label: "安全运维最佳实践", color: "text-emerald-500", bg: "bg-emerald-50" },
-  { icon: Slash, label: "钓鱼邮件识别要点", color: "text-purple-500", bg: "bg-purple-50" },
+  { icon: Globe, label: "最新威胁情报摘要" },
+  { icon: Lightbulb, label: "安全运维最佳实践" },
+  { icon: Slash, label: "钓鱼邮件识别要点" },
+  { icon: AlertCircle, label: "如何识别钓鱼邮件?" },
+  { icon: Search, label: "常见的网络攻击类型有哪些?" },
+  { icon: Shield, label: "什么是零信任安全架构?" },
 ];
 
+const suggestionIcons: Record<string, string> = {
+  "最新威胁情报摘要": "#f59e0b",
+  "安全运维最佳实践": "#10b981",
+  "钓鱼邮件识别要点": "#ef4444",
+  "如何识别钓鱼邮件?": "#6366f1",
+  "常见的网络攻击类型有哪些?": "#06b6d4",
+  "什么是零信任安全架构?": "#8b5cf6",
+};
+
 const mockResponses: Record<string, string> = {
+  "主机安全防护软件的序列号是多少?授权有效期到何时?": `**主机安全防护软件的序列号为:**
+PAynKront2tW/1l1Dr LGP2+CK00VmQqT xz jrKCNWL0epgf Lzg+e/9zAuRu04pkTJETwjqtNpLHa lfovZ2RIYS641FOF76366IE2/b+7WZP6zeGNU5RVsXxg84d9fZ/bigI0raXXFM9uKSeMK5/tt+eKQNs0jgNxcap0KL52A6ul=
+
+**授权有效期存在以下情况:**
+- 有效期标注为2029-06-28和2029-10-15
+- 但资产状态备注显示"已过期"，需进一步核实实际生效状态。`,
+
+  "堡垒机设备的授权有效期到何时、维保有效期到何时?": `堡垒机设备共有两台，其授权有效期均为2099年12月31日，维保有效期均为2028年12月25日。`,
+
+  "aTrust-1000-B1050C在机房的哪个位置?管理员或负责人是谁?过保时间到多少?": `根据CMDB资产数据，aTrust-1000-B1050C的资产编号为JK11A030000125052817634，设备名称为VPN-aTrust-1000-B1050C。
+
+**机房位置:** 通信机房，机柜编号B1F-B2。
+
+**管理员/负责人:** 管理员为张博
+
+**过保时间:** 过保日期为2029-09-25。`,
+
   "近期有哪些高危事件？": `根据安全事件态势感知平台的最新数据，以下是近期高危安全事件汇总：
 
 **1. AD 域账户枚举攻击（INC-2026-0812）**
@@ -189,47 +212,16 @@ const defaultResponses = [
   "关于这个问题，我查阅了知识库中的相关安全策略文档。根据《东航金控网络安全管理手册（2024年版）》第 4.2 节：\n\n> 「所有涉及敏感数据访问的操作，必须经过审批流程，并保留完整的操作审计日志。异常批量数据访问行为需在 15 分钟内触发告警。」\n\n建议您检查以下配置：\n1. DLP 策略是否覆盖了所有敏感数据源\n2. 审计日志保留周期是否符合合规要求（≥180天）\n3. 批量操作告警阈值是否合理",
 ];
 
-function getCurrentTime() {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-}
+// ── Sub-components ──────────────────────────────────────────
 
-function generateId() {
-  return Math.random().toString(36).substring(2, 9);
-}
-
-function TypewriterText({ text, onComplete }: { text: string; onComplete?: () => void }) {
-  const [displayed, setDisplayed] = useState("");
-  const doneRef = useRef(false);
-
-  useEffect(() => {
-    if (doneRef.current && displayed === text) return;
-    doneRef.current = false;
-    let idx = 0;
-    const speed = 10 + Math.floor(Math.random() * 15);
-
-    const interval = setInterval(() => {
-      if (idx < text.length) {
-        setDisplayed(text.slice(0, idx + 1));
-        idx++;
-      } else {
-        setDisplayed(text);
-        doneRef.current = true;
-        clearInterval(interval);
-        onComplete?.();
-      }
-    }, speed);
-
-    return () => clearInterval(interval);
-  }, [text, onComplete]);
-
-  return (
-    <span className="whitespace-pre-wrap">
-      {displayed}
-      <span className="inline-block w-[2px] h-[14px] bg-[#00b4d8] ml-0.5 align-middle typing-cursor" />
-    </span>
-  );
+function renderBold(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i} className="font-semibold text-slate-800">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
 }
 
 function MarkdownText({ content }: { content: string }) {
@@ -243,24 +235,22 @@ function MarkdownText({ content }: { content: string }) {
   const flushTable = () => {
     if (tableHeaders.length > 0 && tableRows.length > 0) {
       elements.push(
-        <div key={`table-${tableKey}`} className="my-2 rounded-lg border border-[#e2e8f0] overflow-hidden text-[11px]">
+        <div key={`table-${tableKey}`} className="my-3 rounded-xl border border-slate-200 overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="bg-[#f8fafc] border-b border-[#e2e8f0]">
+              <tr className="bg-slate-50 border-b border-slate-200">
                 {tableHeaders.map((h, i) => (
-                  <th key={i} className="px-3 py-1.5 text-left font-bold text-[#475569] text-[10px] uppercase tracking-wider">
-                    {h}
+                  <th key={i} className="px-4 py-2.5 text-left font-semibold text-slate-600 text-xs tracking-wide">
+                    {renderBold(h)}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#f1f5f9]">
+            <tbody className="divide-y divide-slate-100">
               {tableRows.map((row, ri) => (
-                <tr key={ri} className="hover:bg-[#f8fafc]/50">
+                <tr key={ri} className="hover:bg-slate-50/50">
                   {row.map((cell, ci) => (
-                    <td key={ci} className="px-3 py-1.5 text-[#334155]">
-                      {cell}
-                    </td>
+                    <td key={ci} className="px-4 py-2.5 text-slate-700 text-sm">{renderBold(cell)}</td>
                   ))}
                 </tr>
               ))}
@@ -276,158 +266,148 @@ function MarkdownText({ content }: { content: string }) {
 
   lines.forEach((line, i) => {
     const trimmed = line.trim();
-
     if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
       const cells = trimmed.split("|").filter(c => c.trim()).map(c => c.trim());
-      const isSeparator = cells.every(c => /^[-:\s]+$/.test(c));
-
-      if (isSeparator) {
-        return;
-      }
-
-      if (!inTable) {
-        inTable = true;
-        tableKey = i;
-        tableHeaders = cells;
-      } else {
-        tableRows.push(cells);
-      }
+      const isSep = cells.every(c => /^[-:\s]+$/.test(c));
+      if (isSep) return;
+      if (!inTable) { inTable = true; tableKey = i; tableHeaders = cells; }
+      else tableRows.push(cells);
       return;
     }
-
-    if (inTable) {
-      flushTable();
-    }
+    if (inTable) flushTable();
 
     if (trimmed.startsWith("## ")) {
       elements.push(
-        <h2 key={i} className="text-sm font-bold text-[#0f172a] mt-3 mb-1.5">{trimmed.slice(3)}</h2>
+        <h2 key={i} className="text-base font-bold text-slate-900 mt-6 mb-2.5 leading-relaxed">{renderBold(trimmed.slice(3))}</h2>
       );
     } else if (trimmed.startsWith("### ")) {
       elements.push(
-        <h3 key={i} className="text-xs font-bold text-[#334155] mt-2 mb-1">{trimmed.slice(4)}</h3>
+        <h3 key={i} className="text-sm font-bold text-slate-800 mt-4 mb-2 leading-relaxed">{renderBold(trimmed.slice(4))}</h3>
       );
-    } else if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
+    } else if (trimmed.startsWith("- [x] ")) {
       elements.push(
-        <p key={i} className="text-xs font-bold text-[#0f172a] mt-2 mb-1">{trimmed.replace(/\*\*/g, "")}</p>
+        <div key={i} className="flex items-center gap-2.5 py-0.5 group">
+          <span className="w-4 h-4 rounded flex items-center justify-center bg-emerald-500 text-white text-[10px] shrink-0 shadow-sm shadow-emerald-200">✓</span>
+          <span className="text-sm text-slate-400 line-through">{renderBold(trimmed.slice(6))}</span>
+        </div>
       );
-    } else if (trimmed.startsWith("- [ ] ") || trimmed.startsWith("- [x] ")) {
-      const checked = trimmed.startsWith("- [x] ");
-      const text = trimmed.slice(6);
+    } else if (trimmed.startsWith("- [ ] ")) {
       elements.push(
-        <div key={i} className="flex items-center gap-1.5 py-0.5">
-          <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[9px] ${checked ? "bg-emerald-500 border-emerald-500 text-white" : "border-[#94a3b8]"}`}>
-            {checked ? "✓" : ""}
-          </span>
-          <span className={`text-[11px] ${checked ? "text-[#64748b] line-through" : "text-[#334155]"}`}>{text}</span>
+        <div key={i} className="flex items-center gap-2.5 py-0.5 group">
+          <span className="w-4 h-4 rounded border-2 border-slate-300 shrink-0 group-hover:border-slate-400 transition-colors" />
+          <span className="text-sm text-slate-700">{renderBold(trimmed.slice(6))}</span>
         </div>
       );
     } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
       elements.push(
-        <div key={i} className="flex items-start gap-1.5 py-0.5">
-          <span className="w-1 h-1 rounded-full bg-[#00b4d8] mt-1 shrink-0" />
-          <span className="text-[11px] text-[#334155] leading-relaxed">{trimmed.slice(2)}</span>
+        <div key={i} className="flex items-start gap-2.5 py-0.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 mt-[7px] shrink-0 ring-2 ring-cyan-100" />
+          <span className="text-sm text-slate-700 leading-relaxed">{renderBold(trimmed.slice(2))}</span>
         </div>
       );
     } else if (/^\d+\./.test(trimmed)) {
       const num = trimmed.match(/^\d+/)?.[0];
       const text = trimmed.replace(/^\d+\.\s*/, "");
       elements.push(
-        <div key={i} className="flex items-start gap-2 py-0.5">
-          <span className="text-[10px] font-bold text-[#00b4d8] w-4 shrink-0 text-right">{num}.</span>
-          <span className="text-[11px] text-[#334155] leading-relaxed">{text}</span>
+        <div key={i} className="flex items-start gap-2.5 py-0.5">
+          <span className="text-xs font-bold text-cyan-600 w-5 shrink-0 text-right mt-0.5">{num}.</span>
+          <span className="text-sm text-slate-700 leading-relaxed">{renderBold(text)}</span>
         </div>
       );
     } else if (trimmed.startsWith("> ")) {
       elements.push(
-        <div key={i} className="my-1.5 pl-3 border-l-2 border-[#00b4d8]/40 bg-[#f0f9ff] py-1.5 pr-2 rounded-r">
-          <span className="text-[11px] text-[#475569] italic">{trimmed.slice(2)}</span>
+        <div key={i} className="my-2.5 pl-4 border-l-[3px] border-cyan-400 bg-cyan-50/60 py-2.5 pr-4 rounded-r-lg">
+          <span className="text-sm text-slate-600 italic leading-relaxed">{renderBold(trimmed.slice(2))}</span>
         </div>
       );
     } else if (trimmed === "") {
-      elements.push(<div key={i} className="h-1" />);
-    } else if (/^```/.test(trimmed)) {
-      // Skip code block markers
-    } else {
+      elements.push(<div key={i} className="h-2" />);
+    } else if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
       elements.push(
-        <p key={i} className="text-[11px] text-[#334155] leading-relaxed">{trimmed}</p>
+        <p key={i} className="text-sm font-semibold text-slate-800 mt-3 mb-1.5">{trimmed.slice(2, -2)}</p>
       );
+    } else {
+      const isLongText = trimmed.length > 60 && !trimmed.includes(" ");
+      if (isLongText) {
+        elements.push(
+          <div key={i} className="my-2 px-3 py-2.5 bg-slate-50/80 rounded-lg border border-slate-100 text-xs text-slate-600 font-mono leading-relaxed overflow-x-auto select-all whitespace-nowrap">
+            {trimmed}
+          </div>
+        );
+      } else {
+        elements.push(
+          <p key={i} className="text-sm text-slate-700 leading-7 break-words">{renderBold(trimmed)}</p>
+        );
+      }
     }
   });
-
-  if (inTable) {
-    flushTable();
-  }
-
+  if (inTable) flushTable();
   return <div className="space-y-0.5">{elements}</div>;
 }
+
+// ── Main Component ──────────────────────────────────────────
 
 export default function AiChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [askedQuestions, setAskedQuestions] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
   const thinkingTexts = [
-    "正在理解您的问题...",
-    "正在检索安全知识库...",
-    "正在关联威胁情报数据...",
-    "正在综合分析事件信息...",
-    "正在生成专业回答...",
-    "正在验证回答准确性...",
+    "正在解析您的问题...",
+    "正在检索 CMDB 资产数据...",
+    "正在匹配设备信息...",
+    "正在验证资产关联关系...",
+    "正在整理分析结果...",
   ];
   const [thinkingText, setThinkingText] = useState(thinkingTexts[0]);
+  const [thinkingStep, setThinkingStep] = useState(0);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isThinking]);
+  }, [messages, isThinking, thinkingStep]);
 
   useEffect(() => {
-    if (!isThinking) return;
+    if (!isThinking) {
+      setThinkingStep(0);
+      setThinkingText(thinkingTexts[0]);
+      return;
+    }
     const interval = setInterval(() => {
-      setThinkingText(thinkingTexts[Math.floor(Math.random() * thinkingTexts.length)]);
-    }, 2000);
+      setThinkingStep((prev) => {
+        const next = prev + 1;
+        if (next < thinkingTexts.length) setThinkingText(thinkingTexts[next]);
+        return next;
+      });
+    }, 1200);
     return () => clearInterval(interval);
   }, [isThinking]);
+
+  function generateId() { return Math.random().toString(36).substring(2, 9); }
 
   function submitQuestion(question: string) {
     const q = question.trim();
     if (!q || isThinking) return;
-
-    setShowSuggestions(false);
-    const userMsg: Message = {
-      id: generateId(),
-      role: "user",
-      content: q,
-      timestamp: getCurrentTime(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
+    setAskedQuestions(prev => new Set(prev).add(q));
+    const userMsg: Message = { id: generateId(), role: "user", content: q };
+    setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsThinking(true);
-
     const assistantId = generateId();
-    const assistantMsg: Message = {
-      id: assistantId,
-      role: "assistant",
-      content: "",
-      timestamp: getCurrentTime(),
-      isStreaming: true,
-    };
-    setMessages((prev) => [...prev, assistantMsg]);
-
+    setMessages(prev => [...prev, { id: assistantId, role: "assistant", content: "" }]);
     const responseText = mockResponses[q] || defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-
+    const cmdbQuestions = [
+      "主机安全防护软件的序列号是多少?授权有效期到何时?",
+      "堡垒机设备的授权有效期到何时、维保有效期到何时?",
+      "aTrust-1000-B1050C在机房的哪个位置?管理员或负责人是谁?过保时间到多少?",
+    ];
+    const delay = cmdbQuestions.includes(q) ? 5000 + Math.random() * 1500 : 2000 + Math.random() * 1000;
     setTimeout(() => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? { ...m, content: responseText, isStreaming: false }
-            : m
-        )
-      );
+      setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: responseText } : m));
       setIsThinking(false);
-    }, 800 + Math.random() * 600);
+    }, delay);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -437,191 +417,181 @@ export default function AiChat() {
     }
   }
 
-  return (
-    <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <header className="h-12 bg-white/80 backdrop-blur-sm border-b border-dashboard-border flex items-center justify-between px-6 relative">
-        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
-        <div className="flex items-center gap-3">
-          <div className="p-1.5 rounded-lg bg-gradient-to-br from-[#00b4d8]/20 to-[#00b4d8]/5">
-            <MessageSquare className="w-4 h-4 text-[#00b4d8]" />
-          </div>
-          <h2 className="text-sm font-semibold text-dashboard-text">
-            AI 安全问答助手
-          </h2>
-          <span className="px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-medium">
-            GPT-4o
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-dashboard-text-dim flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            知识库已同步
-          </span>
-        </div>
-      </header>
+  const isEmpty = messages.length === 0;
 
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-        {messages.length === 0 && !showSuggestions && (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-[#00b4d8]/10 to-[#00b4d8]/5 inline-flex mb-3">
-                <MessageSquare className="w-8 h-8 text-[#00b4d8]/60" />
-              </div>
-              <p className="text-sm text-dashboard-text-dim">开始对话，向我提问安全相关问题</p>
-            </div>
-          </div>
-        )}
-
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex items-start gap-3 animate-fade-in-up ${
-              msg.role === "user" ? "flex-row-reverse" : ""
-            }`}
-            style={{ animationDuration: "0.3s" }}
-          >
-            <div
-              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                msg.role === "user"
-                  ? "bg-gradient-to-br from-blue-600 to-blue-500 shadow-sm shadow-blue-500/20"
-                  : "bg-gradient-to-br from-[#00b4d8] to-[#0096b7] shadow-sm shadow-[#00b4d8]/20"
-              }`}
-            >
-              {msg.role === "user" ? (
-                <User className="w-4 h-4 text-white" />
-              ) : (
-                <Bot className="w-4 h-4 text-white" />
-              )}
-            </div>
-            <div
-              className={`max-w-[70%] min-w-0 ${
-                msg.role === "user"
-                  ? "bg-blue-600 text-white rounded-2xl rounded-tr-md px-4 py-2.5 shadow-sm shadow-blue-500/10"
-                  : "bg-white border border-dashboard-border rounded-2xl rounded-tl-md px-4 py-3 shadow-sm"
-              }`}
-            >
-              {msg.role === "user" ? (
-                <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-              ) : msg.isStreaming ? (
-                <div className="min-h-[1.2em]">
-                  <TypewriterText
-                    text={msg.content}
-                    onComplete={() => {
-                      setMessages((prev) =>
-                        prev.map((m) =>
-                          m.id === msg.id ? { ...m, isStreaming: false } : m
-                        )
-                      );
-                    }}
-                  />
-                </div>
-              ) : (
-                <MarkdownText content={msg.content} />
-              )}
-              <div className={`mt-1.5 flex items-center gap-2 ${
-                msg.role === "user" ? "justify-end" : "justify-start"
-              }`}>
-                <span className={`text-[10px] ${
-                  msg.role === "user" ? "text-blue-200" : "text-dashboard-text-dim"
-                }`}>
-                  {msg.timestamp}
-                </span>
-                {msg.role === "assistant" && !msg.isStreaming && (
-                  <button
-                    onClick={() => submitQuestion(msg.content)}
-                    className="opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
-                  >
-                    <RefreshCw className="w-3 h-3 text-dashboard-text-dim hover:text-[#00b4d8]" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {isThinking && (
-          <div className="flex items-start gap-3 animate-fade-in-up">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00b4d8] to-[#0096b7] flex items-center justify-center shrink-0 shadow-sm shadow-[#00b4d8]/20">
-              <Bot className="w-4 h-4 text-white" />
-            </div>
-            <div className="bg-white border border-dashboard-border rounded-2xl rounded-tl-md px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2.5">
-                <div className="relative flex items-center justify-center w-4 h-4">
-                  <div className="absolute w-4 h-4 rounded-full bg-[#00b4d8]/20 animate-ping" />
-                  <RefreshCw className="w-3 h-3 text-[#00b4d8] animate-spin relative z-10" />
-                </div>
-                <span className="text-[11px] text-dashboard-text-muted">{thinkingText}</span>
-                <span className="inline-flex gap-[2px]">
-                  <span className="w-1 h-1 rounded-full bg-[#94a3b8] animate-thinking-dot" style={{ animationDelay: "0ms" }} />
-                  <span className="w-1 h-1 rounded-full bg-[#94a3b8] animate-thinking-dot" style={{ animationDelay: "200ms" }} />
-                  <span className="w-1 h-1 rounded-full bg-[#94a3b8] animate-thinking-dot" style={{ animationDelay: "400ms" }} />
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
+  // ── Thinking bubble (shared between both occurrences) ──
+  const thinkingBubble = (
+    <div className="bg-white border border-slate-200/80 rounded-2xl rounded-tl-md px-5 py-4 shadow-sm shadow-slate-200/50">
+      <div className="flex items-center gap-3">
+        <span className="relative flex h-4 w-4">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400/40" />
+          <span className="relative inline-flex rounded-full h-4 w-4 bg-cyan-500" />
+        </span>
+        <span className="text-sm text-slate-400 font-medium">{thinkingText}</span>
+        <span className="flex gap-1">
+          {[0, 200, 400].map(d => (
+            <span key={d} className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-thinking-dot" style={{ animationDelay: `${d}ms` }} />
+          ))}
+        </span>
       </div>
+      <div className="flex gap-1 mt-3">
+        {thinkingTexts.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1 rounded-full transition-all duration-500 ease-out ${
+              i <= thinkingStep ? "bg-gradient-to-r from-cyan-400 to-cyan-500 w-5" : "bg-slate-200 w-2"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
 
-      {showSuggestions && messages.length === 0 && (
-        <div className="px-6 pb-4">
-          <div className="bg-white border border-dashboard-border rounded-xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-[#00b4d8]" />
-              <span className="text-xs font-semibold text-dashboard-text">你可以问我这些问题</span>
+  return (
+    <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-gradient-to-b from-white to-slate-50/50">
+      {/* ── Chat area ── */}
+      <div className="flex-1 overflow-y-auto scroll-smooth">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 md:py-10">
+
+          {isEmpty ? (
+            /* ── Empty state ── */
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-240px)]">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-[28px] blur-xl" />
+                <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/25 ring-1 ring-white/20">
+                  <Bot className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <h1 className="text-2xl font-bold text-slate-900 mb-1.5 tracking-tight">安全分析助手</h1>
+              <p className="text-sm text-slate-400 mb-8">问我任何安全相关的问题，快速获取专业分析</p>
+
+              <div className="w-full max-w-xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {suggestions.filter(s => !askedQuestions.has(s.label)).map(({ icon: Icon, label }) => {
+                    const accent = suggestionIcons[label] || "#06b6d4";
+                    return (
+                      <button
+                        key={label}
+                        onClick={() => submitQuestion(label)}
+                        className="group relative flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white border border-slate-200/70 hover:border-slate-300/80 hover:shadow-md hover:shadow-slate-200/60 transition-all duration-200 text-left active:scale-[0.98]"
+                      >
+                        <div
+                          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200"
+                          style={{ backgroundColor: `${accent}12` }}
+                        >
+                          <Icon className="w-4 h-4 transition-colors duration-200" style={{ color: accent }} />
+                        </div>
+                        <span className="text-sm text-slate-600 group-hover:text-slate-900 leading-snug transition-colors duration-200 line-clamp-2">
+                          {label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {suggestions.map((item) => {
-                const Icon = item.icon;
+          ) : (
+            /* ── Messages ── */
+            <div className="space-y-5">
+              {messages.map((msg, idx) => {
+                const isLastAssistant = idx === messages.length - 1 && msg.role === "assistant";
+                const showThinking = isLastAssistant && isThinking && !msg.content;
+
                 return (
-                  <button
-                    key={item.label}
-                    onClick={() => submitQuestion(item.label)}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-200 ${item.bg} ${item.color} hover:shadow-sm active:scale-[0.98] border border-transparent hover:border-current/20 text-left`}
+                  <div
+                    key={msg.id}
+                    className={`flex items-start gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""} animate-fade-in-up`}
+                    style={{ animationDuration: "0.35s", animationFillMode: "both" }}
                   >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </button>
+                    {/* Avatar */}
+                    <div
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm ${
+                        msg.role === "user"
+                          ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-100 shadow-blue-200/50"
+                          : "bg-gradient-to-br from-cyan-500 to-blue-600 ring-cyan-100 shadow-cyan-200/50"
+                      }`}
+                    >
+                      {msg.role === "user" ? (
+                        <User className="w-4 h-4 text-white" />
+                      ) : (
+                        <Bot className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+
+                    {/* Bubble */}
+                    <div className={`max-w-[78%] min-w-0 ${msg.role === "user" ? "flex justify-end" : ""}`}>
+                      {msg.role === "user" ? (
+                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md px-4 py-2.5 shadow-md shadow-blue-200/50">
+                          <p className="text-sm leading-relaxed font-medium break-words">{msg.content}</p>
+                        </div>
+                      ) : showThinking ? (
+                        thinkingBubble
+                      ) : msg.content ? (
+                        <div className="bg-emerald-50/80 border border-emerald-100/60 rounded-2xl rounded-tl-md px-5 py-4 shadow-sm shadow-emerald-100/30 break-words">
+                          <MarkdownText content={msg.content} />
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
                 );
               })}
+
+              {/* Extra thinking row when continuing after a completed message */}
+              {isThinking && messages[messages.length - 1]?.role === "assistant" && messages[messages.length - 1]?.content && (
+                <div className="flex items-start gap-3 animate-fade-in-up" style={{ animationDuration: "0.35s" }}>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shrink-0 ring-2 ring-cyan-100 shadow-sm shadow-cyan-200/50">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  {thinkingBubble}
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Input area ── */}
+      <div className="relative bg-white/95 backdrop-blur-sm border-t border-slate-200/60 shadow-[0_-1px_6px_-1px_rgba(0,0,0,0.04)]">
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+        <div className="max-w-3xl mx-auto px-4 md:px-6 py-3.5">
+          <div className="relative flex items-end gap-2">
+            <div className="relative flex-1">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="问我任何安全相关问题..."
+                rows={1}
+                className="w-full bg-slate-50/80 border border-slate-200/80 rounded-xl pl-4 pr-11 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/25 focus:border-cyan-400/50 resize-none transition-all duration-200"
+                style={{ minHeight: "48px", maxHeight: "120px" }}
+                onInput={e => {
+                  const el = e.currentTarget;
+                  el.style.height = "auto";
+                  el.style.height = Math.min(el.scrollHeight, 120) + "px";
+                }}
+              />
+              <button
+                onClick={() => submitQuestion(input)}
+                disabled={!input.trim() || isThinking}
+                className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-200 ${
+                  input.trim() && !isThinking
+                    ? "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-sm shadow-cyan-200/50 hover:shadow-md hover:shadow-cyan-200/60 active:scale-95"
+                    : "bg-slate-100 cursor-not-allowed"
+                }`}
+              >
+                <Send className={`w-4 h-4 ${
+                  input.trim() && !isThinking ? "text-white" : "text-cyan-400"
+                }`} />
+              </button>
             </div>
           </div>
+          <p className="text-[11px] text-slate-400 text-center mt-2.5 tracking-wide">
+            AI 回答仅供参考，关键安全决策请结合专业判断
+          </p>
         </div>
-      )}
-
-      <div className="px-6 pb-4 pt-2">
-        <div className="relative">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="输入您的安全相关问题，按 Enter 发送..."
-            rows={1}
-            className="w-full bg-white border border-dashboard-border rounded-xl pl-4 pr-12 py-3 text-xs text-dashboard-text placeholder:text-dashboard-text-dim focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none transition-all duration-200 shadow-sm"
-            style={{ minHeight: "44px", maxHeight: "120px" }}
-            onInput={(e) => {
-              const el = e.currentTarget;
-              el.style.height = "auto";
-              el.style.height = Math.min(el.scrollHeight, 120) + "px";
-            }}
-          />
-          <button
-            onClick={() => submitQuestion(input)}
-            disabled={!input.trim() || isThinking}
-            className={`absolute right-1.5 bottom-1.5 p-2 rounded-lg transition-all duration-200 ${
-              input.trim() && !isThinking
-                ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/25 active:scale-[0.95]"
-                : "bg-slate-100 text-dashboard-text-dim cursor-not-allowed"
-            }`}
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
-        <p className="text-[10px] text-dashboard-text-dim mt-1.5 text-center">
-          AI 回答仅供参考，关键安全决策请结合专业判断
-        </p>
       </div>
     </div>
   );

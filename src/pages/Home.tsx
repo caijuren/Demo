@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -187,7 +187,18 @@ function incidentToAlertItem(incident: Incident): AlertItem {
 
 export default function Home() {
   const [selectedAlert, setSelectedAlert] = useState<AlertItem | null>(null);
-  const [currentPage, setCurrentPage] = useState<PageKey>("events");
+  const [currentPage, setCurrentPage] = useState<PageKey>(() => {
+    const saved = localStorage.getItem("home_page");
+    return saved === "ai-chat" ? "ai-chat" : "events";
+  });
+  const [activeNav, setActiveNav] = useState(() => {
+    const saved = localStorage.getItem("home_page");
+    return saved === "ai-chat" ? "AI 问答" : "事件中心";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("home_page", currentPage);
+  }, [currentPage]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-dashboard-bg">
@@ -207,11 +218,14 @@ export default function Home() {
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentPage === item.page;
+            const isActive = activeNav === item.label;
             return (
               <button
                 key={item.label}
-                onClick={() => setCurrentPage(item.page)}
+                onClick={() => {
+                  setActiveNav(item.label);
+                  setCurrentPage(item.page);
+                }}
                 className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all duration-200 w-full text-left ${
                   isActive
                     ? "bg-blue-50/80 text-blue-700 font-semibold shadow-sm shadow-blue-500/5 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-r"
