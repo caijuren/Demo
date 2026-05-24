@@ -1,27 +1,53 @@
 import { useState, useEffect } from "react";
 import {
   ShieldCheck,
-  SquaresFour,
-  WarningCircle,
-  MagnifyingGlass,
-  DesktopTower,
-  ChatCircle,
+  LayoutDashboard,
+  AlertCircle,
+  Search,
+  Server,
+  MessageSquare,
   Database,
   BookOpen,
-  Code,
-  Gear,
+  MessageCircleCode,
+  Settings,
   Download,
   Brain,
   Eye,
   Clock,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
-  Spinner,
-  CaretDown,
-} from "@phosphor-icons/react";
+  Loader2,
+} from "lucide-react";
 import AiAnalysisModal from "@/components/AiAnalysisModal";
 import AiChat from "@/components/AiChat";
 import type { AlertItem } from "@/types";
+
+interface LogEntry {
+  timestamp: string;
+  source: string;
+  process: string;
+  message: string;
+  raw: string;
+}
+
+interface EmployeeProfile {
+  name: string;
+  email: string;
+  employeeId: string;
+  department: string;
+  position: string;
+  tenure: string;
+  manager: string;
+  workHours: string;
+}
+
+interface HistoricalBehavior {
+  period: string;
+  normalAccessTimes: string;
+  abnormalLoginCount: number;
+  dataExportHistory: string;
+  firstAlert: boolean;
+}
 
 interface Incident {
   id: string;
@@ -30,7 +56,30 @@ interface Incident {
   source: string;
   level: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   status: string;
-  aiConclusion: string;
+  eventDescription: string;
+  employeeProfile?: EmployeeProfile;
+  historicalBehavior?: HistoricalBehavior;
+  accessSource?: {
+    ip: string;
+    device: string;
+    isVpn: boolean;
+    tool: string;
+  };
+  approvalProcess?: {
+    submitTime: string;
+    approver: string;
+    purpose: string;
+    archiveTime: string;
+    reason: string;
+  };
+  dataDetails?: {
+    recordCount: number;
+    dataSize: string;
+    sensitiveFields: string[];
+  };
+  comprehensiveAssessment: string;
+  handlingMeasures: string[];
+  terminalLogs: LogEntry[];
 }
 
 const incidents: Incident[] = [
@@ -41,7 +90,38 @@ const incidents: Incident[] = [
     source: "185.220.101.47",
     level: "CRITICAL",
     status: "研判中",
-    aiConclusion: "高危 — 累计试错157次，平均间隔0.1秒，持续遭受自动化暴力破解攻击。终端日志显示：Mar 28 09:44:05 mail-server dovecot: auth-worker(28471): pam(itservice7,185.220.101.47): Authentication failure; logname= uid=0 euid=0 tty=dovecot ruser=itservice7 rhost=185.220.101.47。",
+    eventDescription: "高危 — 累计试错157次，平均间隔0.1秒，持续遭受自动化暴力破解攻击",
+    comprehensiveAssessment: "该邮箱正遭受来自美国IP 185.220.101.47 的持续性自动化大量登录失败攻击。失败登录累计157次，失败次数呈递增趋势，且时间规律一致，集中于22:00后非工作时段。单次试错间隔最小0.05秒，平均0.18秒，远低于人类正常操作基线。与《东航金控数据安全管理办法》中「异常操作行为模式」判定标准高度吻合，置信度97%。",
+    handlingMeasures: [
+      "立即通知许博修改高强度密码并开启MFA",
+      "封禁IP 185.220.101.47",
+      "同步通知yupepeng、daiying账号立即修改密码",
+      "邮件管理员持续监控itservice7账号，确认无异常外发",
+      "攻击IP及特征加入知识图谱，同类攻击下次直接触发高危告警"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Mar 28 09:44:05",
+        source: "mail-server",
+        process: "dovecot",
+        message: "auth-worker(28471): pam(itservice7,185.220.101.47): Authentication failure",
+        raw: "2026-03-28T09:44:05.123+08:00 mail-server dovecot[28471]: auth-worker(28471): pam(itservice7,185.220.101.47): Authentication failure; logname= uid=0 euid=0 tty=dovecot ruser=itservice7 rhost=185.220.101.47"
+      },
+      {
+        timestamp: "Mar 28 09:44:05",
+        source: "mail-server",
+        process: "dovecot",
+        message: "auth-worker(28472): pam(itservice7,185.220.101.47): Authentication failure",
+        raw: "2026-03-28T09:44:05.312+08:00 mail-server dovecot[28472]: auth-worker(28472): pam(itservice7,185.220.101.47): Authentication failure; logname= uid=0 euid=0 tty=dovecot ruser=itservice7 rhost=185.220.101.47"
+      },
+      {
+        timestamp: "Mar 28 09:44:05",
+        source: "mail-server",
+        process: "dovecot",
+        message: "auth-worker(28473): pam(itservice7,185.220.101.47): Authentication failure",
+        raw: "2026-03-28T09:44:05.478+08:00 mail-server dovecot[28473]: auth-worker(28473): pam(itservice7,185.220.101.47): Authentication failure; logname= uid=0 euid=0 tty=dovecot ruser=itservice7 rhost=185.220.101.47"
+      }
+    ]
   },
   {
     id: "INC-2026-0813",
@@ -50,7 +130,37 @@ const incidents: Incident[] = [
     source: "external-host.xyz",
     level: "HIGH",
     status: "待处理",
-    aiConclusion: "邮件网关拦截到 3 封高度仿真的钓鱼邮件，发件人伪装成 IT 运维团队，诱导用户访问 external-host.xyz 的虚假 VPN 登录页。URL 被 3 家威胁情报源标记为恶意。已识别 7 名员工点击了链接，其中 2 名输入了凭据。终端日志：Mar 29 14:06:29 proxy squid[4521]: TCP_MISS/200 1245 GET http://external-host.xyz/login - HIER_DIRECT/185.220.101.47 text/html; user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)。",
+    eventDescription: "邮件网关拦截到 3 封高度仿真的钓鱼邮件，发件人伪装成 IT 运维团队",
+    comprehensiveAssessment: "邮件网关拦截到 3 封高度仿真的钓鱼邮件，发件人伪装成 IT 运维团队，诱导用户访问 external-host.xyz 的虚假 VPN 登录页。URL 被 3 家威胁情报源标记为恶意。已识别 7 名员工点击了链接，其中 2 名输入了凭据。",
+    handlingMeasures: [
+      "立即封锁 external-host.xyz 域名",
+      "通知 7 名点击员工修改密码",
+      "对 2 名输入凭据的员工进行强制 MFA 重置",
+      "加强邮件网关钓鱼检测规则"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Mar 29 14:06:15",
+        source: "mail-gateway",
+        process: "postfix",
+        message: "Received phishing email from external-host.xyz",
+        raw: "2026-03-29T14:06:15.234+08:00 mail-gateway postfix/smtpd[4521]: NOQUEUE: reject: RCPT from unknown[185.220.101.47]: 554 5.7.1 Service unavailable; Client host [185.220.101.47] blocked using zen.spamhaus.org; https://www.spamhaus.org/query/ip/185.220.101.47; from=<it-support@external-host.xyz> to=<zhangsan@corp.com> proto=ESMTP helo=<mail.external-host.xyz>"
+      },
+      {
+        timestamp: "Mar 29 14:06:29",
+        source: "proxy",
+        process: "squid",
+        message: "TCP_MISS/200 1245 GET http://external-host.xyz/login",
+        raw: "2026-03-29T14:06:29.567+08:00 proxy squid[4521]: 158703 10.8.12.45 TCP_MISS/200 1245 GET http://external-host.xyz/login - HIER_DIRECT/185.220.101.47 text/html \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\""
+      },
+      {
+        timestamp: "Mar 29 14:06:35",
+        source: "waf",
+        process: "modsecurity",
+        message: "Access denied with code 403",
+        raw: "2026-03-29T14:06:35.123+08:00 waf modsecurity[8912]: [client 10.8.12.45] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"phishing|credential_harvesting\" at REQUEST_HEADERS:Host. [file \"/etc/modsecurity/rules/phishing.conf\"] [line \"23\"] [id \"941100\"] [msg \"Phishing Site Access Blocked\"] [data \"Matched Data: external-host.xyz found within REQUEST_HEADERS:Host\"] [hostname \"external-host.xyz\"] [uri \"/login\"]"
+      }
+    ]
   },
   {
     id: "INC-2026-0814",
@@ -59,7 +169,79 @@ const incidents: Incident[] = [
     source: "User: chenwei@corp.com",
     level: "MEDIUM",
     status: "已处置",
-    aiConclusion: "用户陈伟（chenwei@corp.com）于凌晨 02:15 从 CRM 系统批量导出客户数据，涉及 2.3 万条记录。经核实，该用户为市场部数据分析师，已补交数据使用审批单。终端日志：Apr 15 02:15:33 crm-app nginx: 10.8.12.45 - chenwei [15/Apr/2026:02:15:33 +0800] GET /api/v1/customers/export?limit=50000 HTTP/1.1 200 18475632 - python-requests/2.28.1; user_agent=Mozilla/5.0。",
+    eventDescription: "用户陈伟于凌晨 02:15 从 CRM 系统批量导出客户数据，涉及 23,847 条记录",
+    employeeProfile: {
+      name: "陈伟",
+      email: "chenwei@corp.com",
+      employeeId: "EMP-2023-0847",
+      department: "市场部",
+      position: "高级数据分析师",
+      tenure: "2年3个月",
+      manager: "市场总监李明",
+      workHours: "09:00-18:00"
+    },
+    historicalBehavior: {
+      period: "过去6个月",
+      normalAccessTimes: "仅在正常工作时间访问CRM系统",
+      abnormalLoginCount: 0,
+      dataExportHistory: "无历史数据导出行为",
+      firstAlert: true
+    },
+    accessSource: {
+      ip: "10.8.12.45",
+      device: "PC-0089",
+      isVpn: false,
+      tool: "Python requests 脚本"
+    },
+    approvalProcess: {
+      submitTime: "04-14 18:30",
+      approver: "市场总监李明",
+      purpose: "季度客户流失分析",
+      archiveTime: "04-15 09:00",
+      reason: "项目截止紧急，提前执行数据提取"
+    },
+    dataDetails: {
+      recordCount: 23847,
+      dataSize: "18.4MB",
+      sensitiveFields: ["客户姓名", "联系方式", "交易记录", "信用评级"]
+    },
+    comprehensiveAssessment: "下载行为符合其岗位职责，数据用途与申请一致，未发现数据外泄迹象，但违反了《东航金控数据安全管理办法》第 12 条关于非工作时间敏感数据访问的规定。",
+    handlingMeasures: [
+      "已补录审批流程",
+      "对该员工进行安全意识培训",
+      "限制其非工作时间数据访问权限",
+      "增加 CRM 系统导出审批自动校验机制"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Apr 15 02:15:28",
+        source: "crm-app",
+        process: "nginx",
+        message: "POST /api/auth/login HTTP/1.1 200",
+        raw: "2026-04-15T02:15:28.412+08:00 crm-app nginx[4521]: 10.8.12.45 - chenwei [15/Apr/2026:02:15:28 +0800] \"POST /api/auth/login HTTP/1.1\" 200 847 \"-\" \"python-requests/2.28.1\" rt=0.234 ua=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\""
+      },
+      {
+        timestamp: "Apr 15 02:15:33",
+        source: "crm-app",
+        process: "nginx",
+        message: "GET /api/v1/customers/export?limit=50000 HTTP/1.1 200",
+        raw: "2026-04-15T02:15:33.789+08:00 crm-app nginx[4521]: 10.8.12.45 - chenwei [15/Apr/2026:02:15:33 +0800] \"GET /api/v1/customers/export?limit=50000&format=csv HTTP/1.1\" 200 18475632 \"-\" \"python-requests/2.28.1\" rt=45.123 ua=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\" request_length=23 response_length=18475632"
+      },
+      {
+        timestamp: "Apr 15 02:15:34",
+        source: "crm-db",
+        process: "mysql",
+        message: "SELECT * FROM customers LIMIT 50000",
+        raw: "2026-04-15T02:15:34.156+08:00 crm-db mysql[28471]: [Note] Aborted connection 28471 to db: 'crm_prod' user: 'app_readonly' host: '10.8.12.45' (Got an error reading communication packets); query: 'SELECT id,name,phone,email,address,credit_level,transaction_history,created_at,updated_at FROM customers LIMIT 50000'"
+      },
+      {
+        timestamp: "Apr 15 02:16:18",
+        source: "dlp-agent",
+        process: "dlp-monitor",
+        message: "ALERT: Large data export detected",
+        raw: "2026-04-15T02:16:18.445+08:00 dlp-agent dlp-monitor[8912]: ALERT [POLICY_ID=DATA_EXPORT_001] [SEVERITY=MEDIUM] User=chenwei@corp.com SourceIP=10.8.12.45 Endpoint=PC-0089 Operation=DATA_EXPORT Records=23847 Size=18.4MB Destination=/home/chenwei/exports/customers_20260415.csv PolicyViolation=NON_WORK_HOURS_SENSITIVE_DATA_ACCESS"
+      }
+    ]
   },
   {
     id: "INC-2026-0815",
@@ -68,7 +250,28 @@ const incidents: Incident[] = [
     source: "10.5.10.22 (PC-0021)",
     level: "CRITICAL",
     status: "已忽略",
-    aiConclusion: "终端安全软件检测到 PC-0021 执行了 Base64 编码的 PowerShell 命令，经解码分析为系统补丁检测脚本。该设备归属运维部张磊，脚本为其日常巡检工具。终端日志：Apr 30 13:36:39 PC-0021 sysmon: Process Create: UtcTime: 2026-04-30 13:36:39.442, ProcessGuid: {a1b2c3d4-e5f6-7890-abcd-ef1234567890}, ProcessId: 4521, Image: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe, CommandLine: powershell -enc UwB5AHMAdABlAG0ALgBVAFAAZABhAHQAZQAuAFQAbwB0AGEAbAAuAEQAbwB3AG4AbABvAGEAZAAoACkA, User: CORP\\zhangsan。",
+    eventDescription: "终端安全软件检测到 PC-0021 执行了 Base64 编码的 PowerShell 命令",
+    comprehensiveAssessment: "终端安全软件检测到 PC-0021 执行了 Base64 编码的 PowerShell 命令，经解码分析为系统补丁检测脚本。该设备归属运维部张磊，脚本为其日常巡检工具。行为特征与已知恶意软件不匹配，判定为误报。",
+    handlingMeasures: [
+      "已将该脚本加入白名单",
+      "更新 EDR 规则避免同类误报"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Apr 30 13:36:39",
+        source: "PC-0021",
+        process: "sysmon",
+        message: "Process Create: powershell.exe -enc ...",
+        raw: "2026-04-30T13:36:39.442+08:00 PC-0021 Microsoft-Windows-Sysmon[4521]: Process Create: RuleName=\"technique_id=T1086,technique_name=PowerShell\" UtcTime=\"2026-04-30 13:36:39.442\" ProcessGuid=\"{a1b2c3d4-e5f6-7890-abcd-ef1234567890}\" ProcessId=\"4521\" Image=\"C:\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe\" CommandLine=\"powershell -ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -enc UwB5AHMAdABlAG0ALgBVAFAAZABhAHQAZQAuAFQAbwB0AGEAbAAuAEQAbwB3AG4AbABvAGEAZAAoACkA\" CurrentDirectory=\"C:\\\\Users\\\\zhangsan\\\\AppData\\\\Local\\\\Temp\" User=\"CORP\\\\zhangsan\" LogonGuid=\"{b2c3d4e5-f6a7-8901-bcde-f23456789012}\" LogonId=\"0x12345678\" TerminalSessionId=\"1\" IntegrityLevel=\"High\""
+      },
+      {
+        timestamp: "Apr 30 13:36:40",
+        source: "PC-0021",
+        process: "sysmon",
+        message: "Network connection detected: 10.5.10.22:49152 -> 45.33.32.156:8443",
+        raw: "2026-04-30T13:36:40.156+08:00 PC-0021 Microsoft-Windows-Sysmon[4521]: Network connection detected: RuleName=\"technique_id=T1021,technique_name=Remote Services\" UtcTime=\"2026-04-30 13:36:40.156\" ProcessGuid=\"{a1b2c3d4-e5f6-7890-abcd-ef1234567890}\" ProcessId=\"4521\" Image=\"C:\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe\" User=\"CORP\\\\zhangsan\" Protocol=\"tcp\" Initiated=\"true\" SourceIsIpv6=\"false\" SourceIp=\"10.5.10.22\" SourceHostname=\"PC-0021\" SourcePort=\"49152\" DestinationIsIpv6=\"false\" DestinationIp=\"45.33.32.156\" DestinationHostname=\"\" DestinationPort=\"8443\""
+      }
+    ]
   },
   {
     id: "INC-2026-0816",
@@ -77,7 +280,36 @@ const incidents: Incident[] = [
     source: "172.16.50.4",
     level: "CRITICAL",
     status: "研判中",
-    aiConclusion: "防火墙日志显示 172.16.50.4 每 30 秒向 185.220.101.47:443 发送固定长度的 TLS 握手请求，包大小一致，无实际业务数据交换。该域名被 VirusTotal 5/70 引擎标记为恶意，关联 APT29 组织历史活动。终端日志：Mar 08 20:20:19 fw01 kernel: [IPTABLES] OUT=eth0 SRC=172.16.50.4 DST=185.220.101.47 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=12345 DF PROTO=TCP SPT=49152 DPT=443 WINDOW=29200 RES=0x00 SYN URGP=0; repeat=47 times/10min。",
+    eventDescription: "防火墙日志显示 172.16.50.4 每 30 秒向 185.220.101.47:443 发送固定长度的 TLS 握手请求",
+    comprehensiveAssessment: "防火墙日志显示 172.16.50.4 每 30 秒向 185.220.101.47:443 发送固定长度的 TLS 握手请求，包大小一致，无实际业务数据交换。该域名被 VirusTotal 5/70 引擎标记为恶意，关联 APT29 组织历史活动。",
+    handlingMeasures: [
+      "立即隔离该主机并取证分析",
+      "封锁 185.220.101.47 域名和 IP",
+      "全网扫描同类 C&C 连接特征"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Mar 08 20:20:19",
+        source: "fw01",
+        process: "kernel",
+        message: "[IPTABLES] OUT=eth0 SRC=172.16.50.4 DST=185.220.101.47 PROTO=TCP SPT=49152 DPT=443 SYN",
+        raw: "2026-03-08T20:20:19.234+08:00 fw01 kernel: [IPTABLES] IN=eth0 OUT=eth1 SRC=172.16.50.4 DST=185.220.101.47 LEN=60 TOS=0x00 PREC=0x00 TTL=63 ID=12345 DF PROTO=TCP SPT=49152 DPT=443 WINDOW=29200 RES=0x00 SYN URGP=0"
+      },
+      {
+        timestamp: "Mar 08 20:20:49",
+        source: "fw01",
+        process: "kernel",
+        message: "[IPTABLES] OUT=eth0 SRC=172.16.50.4 DST=185.220.101.47 PROTO=TCP SPT=49153 DPT=443 SYN",
+        raw: "2026-03-08T20:20:49.567+08:00 fw01 kernel: [IPTABLES] IN=eth0 OUT=eth1 SRC=172.16.50.4 DST=185.220.101.47 LEN=60 TOS=0x00 PREC=0x00 TTL=63 ID=12346 DF PROTO=TCP SPT=49153 DPT=443 WINDOW=29200 RES=0x00 SYN URGP=0"
+      },
+      {
+        timestamp: "Mar 08 20:21:19",
+        source: "ids",
+        process: "suricata",
+        message: "ET MALWARE Possible CnC Beacon",
+        raw: "2026-03-08T20:21:19.890+08:00 ids suricata[8912]: [1:2026187:3] ET MALWARE Possible CnC Beacon [Classification: A Network Trojan was detected] [Priority: 1] {TCP} 172.16.50.4:49152 -> 185.220.101.47:443"
+      }
+    ]
   },
   {
     id: "INC-2026-0817",
@@ -86,7 +318,50 @@ const incidents: Incident[] = [
     source: "123.15.6.8 (Russia)",
     level: "HIGH",
     status: "已处置",
-    aiConclusion: "VPN 网关记录到来自俄罗斯 IP 123.15.6.8 的 47 次失败登录，尝试用户名包括 admin、itservice、zhangsan 等。登录间隔呈规律性（每 5 秒一次），符合字典攻击特征。终端日志：Mar 01 09:31:53 vpn01 openvpn[2156]: 123.15.6.8:51234 TLS Auth Error: Auth Username/Password verification failed for peer ; user=admin; cipher=AES-256-GCM; reason=TLS handshake failed。",
+    eventDescription: "VPN 网关记录到来自俄罗斯 IP 123.15.6.8 的 47 次失败登录",
+    comprehensiveAssessment: "VPN 网关记录到来自俄罗斯 IP 123.15.6.8 的 47 次失败登录，尝试用户名包括 admin、itservice、zhangsan 等。登录间隔呈规律性（每 5 秒一次），符合字典攻击特征。地理围栏策略已自动阻断该 IP 段，无成功登录记录。",
+    handlingMeasures: [
+      "地理围栏策略已自动阻断该 IP 段",
+      "通知相关用户检查密码强度",
+      "加强 VPN 登录监控和告警"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Mar 01 09:31:53",
+        source: "vpn01",
+        process: "openvpn",
+        message: "123.15.6.8:51234 TLS Auth Error: user=admin",
+        raw: "2026-03-01T09:31:53.123+08:00 vpn01 openvpn[4521]: 123.15.6.8:51234 TLS Auth Error: Auth Username/Password verification failed for peer [AF_INET]123.15.6.8:51234 user=admin cipher=AES-256-GCM reason=TLS handshake failed"
+      },
+      {
+        timestamp: "Mar 01 09:31:58",
+        source: "vpn01",
+        process: "openvpn",
+        message: "123.15.6.8:51235 TLS Auth Error: user=root",
+        raw: "2026-03-01T09:31:58.456+08:00 vpn01 openvpn[4521]: 123.15.6.8:51235 TLS Auth Error: Auth Username/Password verification failed for peer [AF_INET]123.15.6.8:51235 user=root cipher=AES-256-GCM reason=TLS handshake failed"
+      },
+      {
+        timestamp: "Mar 01 09:32:03",
+        source: "vpn01",
+        process: "openvpn",
+        message: "123.15.6.8:51236 TLS Auth Error: user=itservice",
+        raw: "2026-03-01T09:32:03.789+08:00 vpn01 openvpn[4521]: 123.15.6.8:51236 TLS Auth Error: Auth Username/Password verification failed for peer [AF_INET]123.15.6.8:51236 user=itservice cipher=AES-256-GCM reason=TLS handshake failed"
+      },
+      {
+        timestamp: "Mar 01 09:32:08",
+        source: "vpn01",
+        process: "openvpn",
+        message: "123.15.6.8:51237 TLS Auth Error: user=zhangsan",
+        raw: "2026-03-01T09:32:08.012+08:00 vpn01 openvpn[4521]: 123.15.6.8:51237 TLS Auth Error: Auth Username/Password verification failed for peer [AF_INET]123.15.6.8:51237 user=zhangsan cipher=AES-256-GCM reason=TLS handshake failed"
+      },
+      {
+        timestamp: "Mar 01 09:32:13",
+        source: "vpn01",
+        process: "openvpn",
+        message: "123.15.6.8:51238 TLS Auth Error: user=admin",
+        raw: "2026-03-01T09:32:13.345+08:00 vpn01 openvpn[4521]: 123.15.6.8:51238 TLS Auth Error: Auth Username/Password verification failed for peer [AF_INET]123.15.6.8:51238 user=admin cipher=AES-256-GCM reason=TLS handshake failed"
+      }
+    ]
   },
   {
     id: "INC-2026-0818",
@@ -95,7 +370,36 @@ const incidents: Incident[] = [
     source: "Exchange Connector",
     level: "LOW",
     status: "待处理",
-    aiConclusion: "Exchange 日志同步服务连续 3 小时未上报数据，API 返回 401 未授权错误。经排查，系服务账户密码过期导致。终端日志：Apr 03 07:59:06 exch01 python3[4521]: [ERROR] Exchange SIEM Connector: HTTP 401 Unauthorized - {'error': 'invalid_client', 'error_description': 'AADSTS7000222: The provided client secret keys are expired.', 'timestamp': '2026-04-03T07:59:06Z'}。",
+    eventDescription: "Exchange 日志同步服务连续 3 小时未上报数据，API 返回 401 未授权错误",
+    comprehensiveAssessment: "Exchange 日志同步服务连续 3 小时未上报数据，API 返回 401 未授权错误。经排查，系服务账户密码过期导致。该账户用于 SIEM 数据接入，不影响邮件服务本身。",
+    handlingMeasures: [
+      "重置服务账户密码",
+      "更新密钥保管库",
+      "设置密码过期提醒机制"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Apr 03 07:59:06",
+        source: "exch01",
+        process: "python3",
+        message: "[ERROR] Exchange SIEM Connector: HTTP 401 Unauthorized",
+        raw: "2026-04-03T07:59:06.234+08:00 exch01 python3[4521]: [ERROR] Exchange SIEM Connector: HTTP 401 Unauthorized - {'error': 'invalid_client', 'error_description': 'AADSTS7000222: The provided client secret keys are expired.', 'timestamp': '2026-04-03T07:59:06Z'}"
+      },
+      {
+        timestamp: "Apr 03 07:59:07",
+        source: "exch01",
+        process: "python3",
+        message: "[WARNING] Retrying connection to Exchange API (attempt 1/3)",
+        raw: "2026-04-03T07:59:07.456+08:00 exch01 python3[4521]: [WARNING] Retrying connection to Exchange API (attempt 1/3) - backoff=5s"
+      },
+      {
+        timestamp: "Apr 03 07:59:12",
+        source: "exch01",
+        process: "python3",
+        message: "[ERROR] Exchange SIEM Connector: HTTP 401 Unauthorized",
+        raw: "2026-04-03T07:59:12.789+08:00 exch01 python3[4521]: [ERROR] Exchange SIEM Connector: HTTP 401 Unauthorized - {'error': 'invalid_client', 'error_description': 'AADSTS7000222: The provided client secret keys are expired.', 'timestamp': '2026-04-03T07:59:12Z'}"
+      }
+    ]
   },
   {
     id: "INC-2026-0819",
@@ -104,7 +408,36 @@ const incidents: Incident[] = [
     source: "User: dba_admin",
     level: "HIGH",
     status: "研判中",
-    aiConclusion: "数据库审计系统告警：dba_admin 账户在 10 分钟内执行了 15 次 SELECT * 查询，涉及员工身份证号、银行卡号等敏感字段，总计返回 12,847 条记录。终端日志：Apr 05 22:01:17 db-audit mysql-audit: {\"timestamp\":\"2026-04-05T22:01:17\",\"user\":\"dba_admin@10.8.12.45\",\"query\":\"SELECT * FROM hr.employees WHERE id < 15000\",\"rows_returned\":12847,\"tables\":[\"hr.employees\"],\"sensitive_columns\":[\"id_card\",\"bank_account\"],\"client_ip\":\"10.8.12.45\"}。",
+    eventDescription: "数据库审计系统告警：dba_admin 账户在 10 分钟内执行了 15 次 SELECT * 查询",
+    comprehensiveAssessment: "数据库审计系统告警：dba_admin 账户在 10 分钟内执行了 15 次 SELECT * 查询，涉及员工身份证号、银行卡号等敏感字段，总计返回 12,847 条记录。该账户归属 DBA 团队刘洋，但查询时间（周六 22:00）与其正常工作时间不符。正在联系负责人核实。",
+    handlingMeasures: [
+      "暂停 dba_admin 账户非工作时间查询权限",
+      "联系 DBA 团队负责人刘洋核实查询目的",
+      "审查数据库审计策略，增加敏感字段访问审批"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Apr 05 22:01:17",
+        source: "db-audit",
+        process: "mysql-audit",
+        message: "SELECT * FROM hr.employees WHERE id < 15000, rows_returned=12847",
+        raw: "2026-04-05T22:01:17.234+08:00 db-audit mysql-audit[28471]: {\"timestamp\":\"2026-04-05T22:01:17\",\"user\":\"dba_admin@10.8.12.45\",\"query\":\"SELECT * FROM hr.employees WHERE id < 15000\",\"rows_returned\":12847,\"tables\":[\"hr.employees\"],\"sensitive_columns\":[\"id_card\",\"bank_account\"],\"client_ip\":\"10.8.12.45\"}"
+      },
+      {
+        timestamp: "Apr 05 22:02:45",
+        source: "db-audit",
+        process: "mysql-audit",
+        message: "SELECT * FROM hr.salary WHERE employee_id < 15000, rows_returned=12847",
+        raw: "2026-04-05T22:02:45.567+08:00 db-audit mysql-audit[28472]: {\"timestamp\":\"2026-04-05T22:02:45\",\"user\":\"dba_admin@10.8.12.45\",\"query\":\"SELECT * FROM hr.salary WHERE employee_id < 15000\",\"rows_returned\":12847,\"tables\":[\"hr.salary\"],\"sensitive_columns\":[\"salary\",\"bank_account\"],\"client_ip\":\"10.8.12.45\"}"
+      },
+      {
+        timestamp: "Apr 05 22:03:12",
+        source: "db-audit",
+        process: "mysql-audit",
+        message: "SELECT * FROM hr.attendance WHERE employee_id < 15000, rows_returned=12847",
+        raw: "2026-04-05T22:03:12.890+08:00 db-audit mysql-audit[28473]: {\"timestamp\":\"2026-04-05T22:03:12\",\"user\":\"dba_admin@10.8.12.45\",\"query\":\"SELECT * FROM hr.attendance WHERE employee_id < 15000\",\"rows_returned\":12847,\"tables\":[\"hr.attendance\"],\"sensitive_columns\":[\"check_in_time\",\"check_out_time\"],\"client_ip\":\"10.8.12.45\"}"
+      }
+    ]
   },
   {
     id: "INC-2026-0820",
@@ -113,7 +446,65 @@ const incidents: Incident[] = [
     source: "10.8.12.55 (PC-0047)",
     level: "CRITICAL",
     status: "待处理",
-    aiConclusion: "EDR 检测到 PC-0047 在 5 分钟内对 23 台内网主机发起 SMB 连接，尝试访问 ADMIN$ 共享。该设备归属研发部王涛，但其正常工作不涉及服务器管理。终端日志：Mar 28 16:00:25 PC-0047 sysmon: Network connection detected: UtcTime: 2026-03-28 16:00:25.881, ProcessGuid: {b2c3d4e5-f6a7-8901-bcde-f23456789012}, ProcessId: 8912, Image: C:\\Windows\\System32\\svchost.exe, User: CORP\\wangtao, Protocol: tcp, Initiated: true, SourceIsIpv6: false, SourceIp: 10.8.12.55, SourceHostname: PC-0047, SourcePort: 49672, DestinationIsIpv6: false, DestinationIp: 10.8.12.10, DestinationHostname: FILE-SERVER-01, DestinationPort: 445。",
+    eventDescription: "EDR 检测到 PC-0047 在 5 分钟内对 23 台内网主机发起 SMB 连接",
+    comprehensiveAssessment: "EDR 检测到 PC-0047 在 5 分钟内对 23 台内网主机发起 SMB 连接，尝试访问 ADMIN$ 共享。该设备归属研发部王涛，但其正常工作不涉及服务器管理。NTLM 认证日志显示使用了本地管理员账户，疑似凭据泄露或 Pass-the-Hash 攻击。",
+    handlingMeasures: [
+      "立即隔离 PC-0047 并取证分析",
+      "重置王涛账户密码并检查其他设备",
+      "全网扫描 SMB 异常连接",
+      "审查本地管理员账户使用情况"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Mar 28 16:00:25",
+        source: "PC-0047",
+        process: "sysmon",
+        message: "Network connection detected: 10.8.12.55:49672 -> 10.8.12.10:445 (SMB)",
+        raw: "2026-03-28T16:00:25.881+08:00 PC-0047 Microsoft-Windows-Sysmon[4521]: Network connection detected: RuleName=\"technique_id=T1021.002,technique_name=SMB/Windows Admin Shares\" UtcTime=\"2026-03-28 16:00:25.881\" ProcessGuid=\"{b2c3d4e5-f6a7-8901-bcde-f23456789012}\" ProcessId=\"8912\" Image=\"C:\\\\Windows\\\\System32\\\\svchost.exe\" User=\"CORP\\\\wangtao\" Protocol=\"tcp\" Initiated=\"true\" SourceIsIpv6=\"false\" SourceIp=\"10.8.12.55\" SourceHostname=\"PC-0047\" SourcePort=\"49672\" DestinationIsIpv6=\"false\" DestinationIp=\"10.8.12.10\" DestinationHostname=\"FILE-SERVER-01\" DestinationPort=\"445\""
+      },
+      {
+        timestamp: "Mar 28 16:00:26",
+        source: "PC-0047",
+        process: "sysmon",
+        message: "Network connection detected: 10.8.12.55:49673 -> 10.8.12.11:445 (SMB)",
+        raw: "2026-03-28T16:00:26.123+08:00 PC-0047 Microsoft-Windows-Sysmon[4521]: Network connection detected: RuleName=\"technique_id=T1021.002,technique_name=SMB/Windows Admin Shares\" UtcTime=\"2026-03-28 16:00:26.123\" ProcessGuid=\"{b2c3d4e5-f6a7-8901-bcde-f23456789012}\" ProcessId=\"8912\" Image=\"C:\\\\Windows\\\\System32\\\\svchost.exe\" User=\"CORP\\\\wangtao\" Protocol=\"tcp\" Initiated=\"true\" SourceIsIpv6=\"false\" SourceIp=\"10.8.12.55\" SourceHostname=\"PC-0047\" SourcePort=\"49673\" DestinationIsIpv6=\"false\" DestinationIp=\"10.8.12.11\" DestinationHostname=\"FILE-SERVER-02\" DestinationPort=\"445\""
+      },
+      {
+        timestamp: "Mar 28 16:00:27",
+        source: "PC-0047",
+        process: "sysmon",
+        message: "Network connection detected: 10.8.12.55:49674 -> 10.8.12.12:445 (SMB)",
+        raw: "2026-03-28T16:00:27.456+08:00 PC-0047 Microsoft-Windows-Sysmon[4521]: Network connection detected: RuleName=\"technique_id=T1021.002,technique_name=SMB/Windows Admin Shares\" UtcTime=\"2026-03-28 16:00:27.456\" ProcessGuid=\"{b2c3d4e5-f6a7-8901-bcde-f23456789012}\" ProcessId=\"8912\" Image=\"C:\\\\Windows\\\\System32\\\\svchost.exe\" User=\"CORP\\\\wangtao\" Protocol=\"tcp\" Initiated=\"true\" SourceIsIpv6=\"false\" SourceIp=\"10.8.12.55\" SourceHostname=\"PC-0047\" SourcePort=\"49674\" DestinationIsIpv6=\"false\" DestinationIp=\"10.8.12.12\" DestinationHostname=\"DB-SERVER-01\" DestinationPort=\"445\""
+      },
+      {
+        timestamp: "Mar 28 16:00:28",
+        source: "PC-0047",
+        process: "security",
+        message: "Event ID 4648: A logon was attempted using explicit credentials",
+        raw: "2026-03-28T16:00:28.789+08:00 PC-0047 Microsoft-Windows-Security-Auditing[4521]: Event ID 4648: A logon was attempted using explicit credentials. Subject: Security ID: CORP\\\\wangtao Account Name: wangtao Account Domain: CORP Logon ID: 0x12345678 Logon GUID: {c3d4e5f6-a7b8-9012-cdef-345678901234} Target Server Name: FILE-SERVER-01 Target Server Info: FILE-SERVER-01 Additional Information: FILE-SERVER-01 Process ID: 0x1234 Process Name: C:\\\\Windows\\\\System32\\\\svchost.exe Network Address: 10.8.12.10 Port: 445"
+      },
+      {
+        timestamp: "Mar 28 16:00:29",
+        source: "PC-0047",
+        process: "sysmon",
+        message: "File creation: C:\\Windows\\Temp\\svc_host.exe",
+        raw: "2026-03-28T16:00:29.012+08:00 PC-0047 Microsoft-Windows-Sysmon[4521]: File created: RuleName=\"technique_id=T1036,technique_name=Masquerading\" UtcTime=\"2026-03-28 16:00:29.012\" ProcessGuid=\"{d4e5f6a7-b8c9-0123-def4-567890123456}\" ProcessId=\"4521\" Image=\"C:\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe\" TargetFilename=\"C:\\\\Windows\\\\Temp\\\\svc_host.exe\" CreationUtcTime=\"2026-03-28 16:00:29.012\" User=\"CORP\\\\wangtao\""
+      },
+      {
+        timestamp: "Mar 28 16:00:30",
+        source: "PC-0047",
+        process: "sysmon",
+        message: "Process Create: C:\\Windows\\Temp\\svc_host.exe",
+        raw: "2026-03-28T16:00:30.345+08:00 PC-0047 Microsoft-Windows-Sysmon[4521]: Process Create: RuleName=\"technique_id=T1059,technique_name=Command and Scripting Interpreter\" UtcTime=\"2026-03-28 16:00:30.345\" ProcessGuid=\"{e5f6a7b8-c9d0-1234-ef56-789012345678}\" ProcessId=\"4522\" Image=\"C:\\\\Windows\\\\Temp\\\\svc_host.exe\" CommandLine=\"svc_host.exe -connect 185.220.101.47:443\" CurrentDirectory=\"C:\\\\Windows\\\\Temp\" User=\"CORP\\\\wangtao\" LogonGuid=\"{f6a7b8c9-d0e1-2345-f678-901234567890}\" LogonId=\"0x23456789\" TerminalSessionId=\"1\" IntegrityLevel=\"High\""
+      },
+      {
+        timestamp: "Mar 28 16:00:31",
+        source: "PC-0047",
+        process: "security",
+        message: "Event ID 4624: An account was successfully logged on",
+        raw: "2026-03-28T16:00:31.678+08:00 PC-0047 Microsoft-Windows-Security-Auditing[4521]: Event ID 4624: An account was successfully logged on. Subject: Security ID: S-1-0-0 Account Name: - Account Domain: - Logon ID: 0x0 Logon Type: 3 New Logon: Security ID: S-1-5-21-1234567890-1234567890-1234567890-500 Account Name: Administrator Account Domain: FILE-SERVER-01 Logon ID: 0x34567890 Logon GUID: {a7b8c9d0-e1f2-3456-7890-123456789012} Process Information: Process ID: 0x4 Process Name: C:\\\\Windows\\\\System32\\\\svchost.exe Network Information: Workstation Name: PC-0047 Source Network Address: 10.8.12.55 Source Port: 49672 Detailed Authentication Information: Logon Process: NtLmSsp Authentication Package: NTLM Transited Services: - Package Name (NTLM only): NTLM V2 Key Length: 128"
+      }
+    ]
   },
   {
     id: "INC-2026-0821",
@@ -122,7 +513,65 @@ const incidents: Incident[] = [
     source: "45.142.212.89 (Netherlands)",
     level: "HIGH",
     status: "已处置",
-    aiConclusion: "WAF 拦截到来自荷兰 IP 的 89 次 SQL 注入攻击，目标为 OA 系统的 /api/report/export 接口。攻击载荷包含 UNION SELECT、sleep() 等特征，尝试提取数据库版本信息。终端日志：Mar 18 08:02:15 waf01 modsecurity: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:union\\\\s*select)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"47\"] [id \"942100\"] [msg \"SQL Injection Attack Detected\"] [data \"Matched Data: UNION SELECT found within ARGS:query: 1' UNION SELECT version(),user(),database()-- \"] [severity \"CRITICAL\"] [tag \"application-multi\"] [tag \"language-multi\"] [tag \"platform-multi\"] [tag \"attack-sqli\"] [hostname \"oa.corp.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcdef\"]。",
+    eventDescription: "WAF 拦截到来自荷兰 IP 的 89 次 SQL 注入攻击",
+    comprehensiveAssessment: "WAF 拦截到来自荷兰 IP 的 89 次 SQL 注入攻击，目标为 OA 系统的 /api/report/export 接口。攻击载荷包含 UNION SELECT、sleep() 等特征，尝试提取数据库版本信息。所有请求均被 WAF 规则阻断，后端无异常查询记录。",
+    handlingMeasures: [
+      "WAF 已自动阻断所有攻击请求",
+      "封锁 45.142.212.89 IP 地址",
+      "更新 WAF SQL 注入检测规则",
+      "检查 OA 系统是否存在其他注入点"
+    ],
+    terminalLogs: [
+      {
+        timestamp: "Mar 18 08:02:15",
+        source: "waf01",
+        process: "modsecurity",
+        message: "Access denied with code 403 (phase 2). SQL Injection Attack Detected",
+        raw: "2026-03-18T08:02:15.234+08:00 waf01 modsecurity[8912]: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:union\\s*select)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"47\"] [id \"942100\"] [msg \"SQL Injection Attack Detected\"] [data \"Matched Data: UNION SELECT found within ARGS:query: 1' UNION SELECT version(),user(),database()-- \"] [severity \"CRITICAL\"] [hostname \"oa.corp.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcdef\"]"
+      },
+      {
+        timestamp: "Mar 18 08:02:16",
+        source: "waf01",
+        process: "modsecurity",
+        message: "Access denied with code 403 (phase 2). SQL Injection Attack Detected",
+        raw: "2026-03-18T08:02:16.567+08:00 waf01 modsecurity[8912]: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:select\\s*sleep)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"52\"] [id \"942160\"] [msg \"SQL Injection Attack Detected - Time-based Blind SQLi\"] [data \"Matched Data: SELECT SLEEP found within ARGS:query: 1' AND (SELECT * FROM (SELECT(SLEEP(5)))a)-- \"] [severity \"CRITICAL\"] [hostname \"oa.corp.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcd01\"]"
+      },
+      {
+        timestamp: "Mar 18 08:02:17",
+        source: "waf01",
+        process: "modsecurity",
+        message: "Access denied with code 403 (phase 2). SQL Injection Attack Detected",
+        raw: "2026-03-18T08:02:17.890+08:00 waf01 modsecurity[8912]: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:information_schema)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"58\"] [id \"942200\"] [msg \"SQL Injection Attack Detected - Schema Enumeration\"] [data \"Matched Data: information_schema found within ARGS:query: 1' UNION SELECT table_name,column_name FROM information_schema.columns WHERE table_schema=database()-- \"] [severity \"CRITICAL\"] [hostname \"oa.corp.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcd02\"]"
+      },
+      {
+        timestamp: "Mar 18 08:02:18",
+        source: "oa-app",
+        process: "nginx",
+        message: "GET /api/report/export?query=1' UNION SELECT HTTP/1.1 403",
+        raw: "2026-03-18T08:02:18.123+08:00 oa-app nginx[4521]: 45.142.212.89 - - [18/Mar/2026:08:02:18 +0800] \"GET /api/report/export?query=1%27%20UNION%20SELECT%20version(),user(),database()--%20 HTTP/1.1\" 403 512 \"-\" \"sqlmap/1.7.3#stable (https://sqlmap.org)\" rt=0.045 ua=\"sqlmap/1.7.3#stable\" request_length=89 response_length=512"
+      },
+      {
+        timestamp: "Mar 18 08:02:19",
+        source: "oa-app",
+        process: "nginx",
+        message: "GET /api/report/export?query=1' AND (SELECT HTTP/1.1 403",
+        raw: "2026-03-18T08:02:19.456+08:00 oa-app nginx[4521]: 45.142.212.89 - - [18/Mar/2026:08:02:19 +0800] \"GET /api/report/export?query=1%27%20AND%20(SELECT%20*%20FROM%20(SELECT(SLEEP(5)))a)--%20 HTTP/1.1\" 403 512 \"-\" \"sqlmap/1.7.3#stable (https://sqlmap.org)\" rt=0.052 ua=\"sqlmap/1.7.3#stable\" request_length=95 response_length=512"
+      },
+      {
+        timestamp: "Mar 18 08:02:20",
+        source: "oa-db",
+        process: "mysql",
+        message: "Aborted connection 28471 to db: 'oa_prod' user: 'app_readonly'",
+        raw: "2026-03-18T08:02:20.789+08:00 oa-db mysql[28471]: [Note] Aborted connection 28471 to db: 'oa_prod' user: 'app_readonly' host: '10.8.12.20' (Got timeout reading communication packets); query: 'SELECT * FROM reports WHERE id = 1'"
+      },
+      {
+        timestamp: "Mar 18 08:02:21",
+        source: "siem",
+        process: "suricata",
+        message: "ET WEB_SERVER Web Attack - SQL Injection",
+        raw: "2026-03-18T08:02:21.012+08:00 siem suricata[8912]: [1:2011802:3] ET WEB_SERVER Web Attack - SQL Injection [Classification: Web Application Attack] [Priority: 1] {TCP} 45.142.212.89:51234 -> 10.8.12.10:443"
+      }
+    ]
   },
 ];
 
@@ -157,28 +606,28 @@ const levelConfig: Record<string, { bg: string; text: string; border: string; do
   },
 };
 
-const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string; weight?: string }>; color: string; bg: string }> = {
-  "研判中": { icon: Spinner, color: "text-blue-600", bg: "bg-blue-50" },
+const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string; bg: string }> = {
+  "研判中": { icon: Loader2, color: "text-blue-600", bg: "bg-blue-50" },
   "待处理": { icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-  "已处置": { icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
+  "已处置": { icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
   "已忽略": { icon: XCircle, color: "text-slate-500", bg: "bg-slate-50" },
 };
 
 type PageKey = "events" | "ai-chat";
 
-const navItems: { icon: React.ComponentType<{ className?: string; weight?: string }>; label: string; page: PageKey }[] = [
-  { icon: SquaresFour, label: "工作台", page: "events" },
-  { icon: WarningCircle, label: "事件中心", page: "events" },
-  { icon: MagnifyingGlass, label: "调查分析", page: "events" },
-  { icon: DesktopTower, label: "资产清单", page: "events" },
-  { icon: ChatCircle, label: "AI 问答", page: "ai-chat" },
+const navItems: { icon: React.ComponentType<{ className?: string }>; label: string; page: PageKey }[] = [
+  { icon: LayoutDashboard, label: "工作台", page: "events" },
+  { icon: AlertCircle, label: "事件中心", page: "events" },
+  { icon: Search, label: "调查分析", page: "events" },
+  { icon: Server, label: "资产清单", page: "events" },
+  { icon: MessageSquare, label: "AI 问答", page: "ai-chat" },
 ];
 
 const configItems = [
   { icon: Database, label: "数据源", href: "#" },
   { icon: BookOpen, label: "知识库", href: "#" },
-  { icon: Code, label: "反馈管理", href: "#" },
-  { icon: Gear, label: "系统设置", href: "#" },
+  { icon: MessageCircleCode, label: "反馈管理", href: "#" },
+  { icon: Settings, label: "系统设置", href: "#" },
 ];
 
 function incidentToAlertItem(incident: Incident): AlertItem {
@@ -200,7 +649,16 @@ function incidentToAlertItem(incident: Incident): AlertItem {
         : "pending",
     time: incident.time,
     source: incident.source,
-    detail: incident.aiConclusion,
+    detail: incident.eventDescription,
+    eventDescription: incident.eventDescription,
+    comprehensiveAssessment: incident.comprehensiveAssessment,
+    handlingMeasures: incident.handlingMeasures,
+    employeeProfile: incident.employeeProfile,
+    historicalBehavior: incident.historicalBehavior,
+    accessSource: incident.accessSource,
+    approvalProcess: incident.approvalProcess,
+    dataDetails: incident.dataDetails,
+    terminalLogs: incident.terminalLogs,
   };
 }
 
@@ -220,19 +678,19 @@ export default function Home() {
   }, [currentPage]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-dashboard-bg">
+    <div className="flex h-screen overflow-hidden bg-[#f8fafc]">
       {/* Sidebar */}
-      <aside className="w-48 flex-shrink-0 bg-gradient-to-b from-white to-slate-50/80 border-r border-dashboard-border flex flex-col shadow-sm">
-        <div className="px-4 py-5 flex items-center gap-2.5 border-b border-dashboard-border/50">
-          <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-blue-500 rounded-lg flex items-center justify-center shadow-sm shadow-blue-500/20">
-            <ShieldCheck weight="duotone" className="text-white w-4 h-4" />
+      <aside className="w-48 flex-shrink-0 bg-white border-r border-[#e2e8f0] flex flex-col">
+        <div className="px-4 py-5 flex items-center gap-2.5 border-b border-[#e2e8f0]">
+          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
+            <ShieldCheck className="text-white w-4 h-4" />
           </div>
-          <h1 className="text-sm font-semibold tracking-tight text-dashboard-text whitespace-nowrap">
+          <h1 className="text-sm font-semibold text-slate-900 whitespace-nowrap">
             安全事件分析助手
           </h1>
         </div>
         <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
-          <div className="text-[10px] font-bold text-dashboard-text-dim uppercase tracking-widest px-2.5 pt-3 pb-1.5">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2.5 pt-3 pb-1.5">
             核心模块
           </div>
           {navItems.map((item) => {
@@ -245,18 +703,18 @@ export default function Home() {
                   setActiveNav(item.label);
                   setCurrentPage(item.page);
                 }}
-                className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all duration-200 w-full text-left ${
+                className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all w-full text-left ${
                   isActive
-                    ? "bg-blue-50/80 text-blue-700 font-semibold shadow-sm shadow-blue-500/5 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-r"
-                    : "text-dashboard-text-muted hover:bg-dashboard-hover-light hover:text-dashboard-text"
+                    ? "bg-blue-50 text-blue-700 font-semibold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-r"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
-                <Icon weight="duotone" className={`w-[18px] h-[18px] ${isActive ? "text-blue-600" : ""}`} />
+                <Icon className={`w-[18px] h-[18px] ${isActive ? "text-blue-600" : ""}`} />
                 <span>{item.label}</span>
               </button>
             );
           })}
-          <div className="text-[10px] font-bold text-dashboard-text-dim uppercase tracking-widest px-2.5 pt-4 pb-1.5">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2.5 pt-4 pb-1.5">
             配置管理
           </div>
           {configItems.map((item) => {
@@ -265,197 +723,182 @@ export default function Home() {
               <a
                 key={item.label}
                 href={item.href}
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs hover:bg-dashboard-hover-light transition-all duration-200 text-dashboard-text-muted hover:text-dashboard-text"
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs hover:bg-slate-100 transition-all text-slate-500 hover:text-slate-900"
               >
-                <Icon weight="duotone" className="w-[18px] h-[18px]" />
+                <Icon className="w-[18px] h-[18px]" />
                 <span>{item.label}</span>
               </a>
             );
           })}
         </nav>
-        <div className="px-3 py-3 border-t border-dashboard-border/50">
+        <div className="px-3 py-3 border-t border-[#e2e8f0]">
           <div className="flex items-center gap-2 px-2.5 py-1.5">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-[10px] text-white font-bold shadow-sm">
+            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white font-bold">
               A
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[11px] font-medium text-dashboard-text truncate">Admin</div>
-              <div className="text-[10px] text-dashboard-text-dim">超级管理员</div>
+              <div className="text-[11px] font-medium text-slate-900 truncate">Admin</div>
+              <div className="text-[10px] text-slate-400">超级管理员</div>
             </div>
           </div>
         </div>
       </aside>
 
       {currentPage === "ai-chat" ? (
-         <AiChat />
-       ) : (
-         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <header className="h-12 bg-white/80 backdrop-blur-sm border-b border-dashboard-border flex items-center justify-between px-6 relative">
-          <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
-          <h2 className="text-sm font-semibold text-dashboard-text">
-            统一事件流管理系统
-          </h2>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/25 active:scale-[0.98]">
-              <Download weight="duotone" className="w-3.5 h-3.5" />
-              导出审计报告
-            </button>
-          </div>
-        </header>
+        <AiChat />
+      ) : (
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <header className="h-12 bg-white border-b border-[#e2e8f0] flex items-center justify-between px-6">
+            <h2 className="text-sm font-semibold text-slate-900">
+              统一事件流管理系统
+            </h2>
+            <div className="flex items-center gap-2">
+              <button className="px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all">
+                <Download className="w-3.5 h-3.5" />
+                导出审计报告
+              </button>
+            </div>
+          </header>
 
-        <div className="flex-1 overflow-y-auto p-5">
-          {/* Filter Bar */}
-          <div className="bg-white border border-dashboard-border p-4 rounded-xl mb-4 shadow-sm">
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="flex items-center gap-2 min-w-[260px]">
-                <label className="text-[11px] font-semibold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">搜索事件</label>
-                <div className="relative flex-1">
-                  <MagnifyingGlass weight="duotone" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-dashboard-text-dim w-3.5 h-3.5" />
+          <div className="flex-1 overflow-y-auto p-5">
+            {/* Filter Bar */}
+            <div className="bg-white border border-[#e2e8f0] p-3.5 rounded-xl mb-4 flex flex-wrap gap-3 items-end">
+              <div className="flex-1 min-w-[180px] space-y-1">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">搜索事件</label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
                   <input
-                    className="w-full bg-white border border-dashboard-border rounded-lg pl-8 pr-3 py-1.5 text-xs text-dashboard-text placeholder:text-dashboard-text-dim focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 h-[34px] transition-all duration-200 hover:border-blue-300"
+                    className="w-full bg-slate-50 border border-[#e2e8f0] rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 h-[32px]"
                     placeholder="ID, IP, 资产名称..."
                     type="text"
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-[11px] font-semibold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">风险等级</label>
-                <div className="relative">
-                  <select className="appearance-none bg-white border border-dashboard-border rounded-lg pl-3 pr-8 py-1.5 text-xs text-dashboard-text focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 h-[34px] min-w-[140px] cursor-pointer transition-all duration-200 hover:border-blue-300">
-                    <option>全部等级</option>
-                    <option>Critical (严重)</option>
-                    <option>High (高危)</option>
-                    <option>Medium (中等)</option>
-                    <option>Low (低危)</option>
-                  </select>
-                  <CaretDown weight="bold" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dashboard-text-dim w-3 h-3 pointer-events-none" />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">风险等级</label>
+                <select className="bg-slate-50 border border-[#e2e8f0] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-slate-900 h-[32px]">
+                  <option>全部等级</option>
+                  <option>Critical (严重)</option>
+                  <option>High (高危)</option>
+                  <option>Medium (中等)</option>
+                  <option>Low (低危)</option>
+                </select>
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-[11px] font-semibold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">事件分类</label>
-                <div className="relative">
-                  <select className="appearance-none bg-white border border-dashboard-border rounded-lg pl-3 pr-8 py-1.5 text-xs text-dashboard-text focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 h-[34px] min-w-[140px] cursor-pointer transition-all duration-200 hover:border-blue-300">
-                    <option>全部类型</option>
-                    <option>密码暴力破解</option>
-                    <option>钓鱼邮件</option>
-                    <option>用户异常行为</option>
-                    <option>恶意代码植入</option>
-                    <option>数据泄露风险</option>
-                  </select>
-                  <CaretDown weight="bold" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dashboard-text-dim w-3 h-3 pointer-events-none" />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">事件分类</label>
+                <select className="bg-slate-50 border border-[#e2e8f0] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-slate-900 h-[32px]">
+                  <option>全部类型</option>
+                  <option>密码暴力破解</option>
+                  <option>钓鱼邮件</option>
+                  <option>用户异常行为</option>
+                  <option>恶意代码植入</option>
+                  <option>数据泄露风险</option>
+                </select>
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-[11px] font-semibold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">处理状态</label>
-                <div className="relative">
-                  <select className="appearance-none bg-white border border-dashboard-border rounded-lg pl-3 pr-8 py-1.5 text-xs text-dashboard-text focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 h-[34px] min-w-[140px] cursor-pointer transition-all duration-200 hover:border-blue-300">
-                    <option>全部状态</option>
-                    <option>待处理</option>
-                    <option>研判中</option>
-                    <option>已处置</option>
-                    <option>误报忽略</option>
-                  </select>
-                  <CaretDown weight="bold" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-dashboard-text-dim w-3 h-3 pointer-events-none" />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">处理状态</label>
+                <select className="bg-slate-50 border border-[#e2e8f0] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-slate-900 h-[32px]">
+                  <option>全部状态</option>
+                  <option>待处理</option>
+                  <option>研判中</option>
+                  <option>已处置</option>
+                  <option>误报忽略</option>
+                </select>
               </div>
-              <button className="h-[34px] px-4 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-dashboard-text-muted rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97]">
+              <button className="bg-slate-100 hover:bg-slate-200 text-slate-500 px-3 py-1.5 rounded-lg text-xs font-medium h-[32px]">
                 重置
               </button>
             </div>
-          </div>
 
-          {/* Table */}
-          <div className="bg-white border border-dashboard-border rounded-xl overflow-x-auto shadow-sm">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="bg-gradient-to-r from-slate-50 to-slate-50/50 border-b border-dashboard-border">
-                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">事件 ID</th>
-                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">时间戳</th>
-                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider">事件名称</th>
-                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">源 IP / 账户</th>
-                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap min-w-[80px]">风险级别</th>
-                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">状态</th>
-                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider whitespace-nowrap">AI 研判结论</th>
-                  <th className="px-4 py-2.5 text-[11px] font-bold text-dashboard-text-dim uppercase tracking-wider text-right whitespace-nowrap min-w-[160px]">操作</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {incidents.map((incident, index) => {
-                  const levelStyle = levelConfig[incident.level];
-                  const statusStyle = statusConfig[incident.status];
-                  const StatusIcon = statusStyle.icon;
-                  const isCritical = incident.level === "CRITICAL";
-                  return (
-                    <tr
-                      key={incident.id}
-                      className={`group transition-all duration-200 hover:bg-blue-50/30 border-l-[3px] ${levelStyle.accent} ${isCritical ? "bg-red-50/20" : ""}`}
-                      style={{ animationDelay: `${index * 60}ms` }}
-                    >
-                      <td className="px-4 py-2.5 font-mono text-dashboard-text-dim text-[11px] whitespace-nowrap">
-                        {incident.id}
-                      </td>
-                      <td className="px-4 py-2.5 text-dashboard-text-muted whitespace-nowrap font-mono text-[11px]">
-                        {incident.time}
-                      </td>
-                      <td className="px-4 py-2.5 font-medium text-dashboard-text truncate max-w-[280px]" title={incident.name}>
-                        {incident.name}
-                      </td>
-                      <td className="px-4 py-2.5 text-dashboard-text-muted truncate max-w-[160px] font-mono text-[11px]" title={incident.source}>
-                        {incident.source}
-                      </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${levelStyle.bg} ${levelStyle.text} border ${levelStyle.border}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${levelStyle.dot} ${isCritical ? "animate-pulse" : ""}`} />
-                          {incident.level}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium ${statusStyle.bg} ${statusStyle.color}`}>
-                          <StatusIcon weight="duotone" className={`w-3 h-3 ${incident.status === "研判中" ? "animate-spin" : ""}`} />
-                          {incident.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5 text-dashboard-text-muted max-w-[180px] truncate text-[11px]" title={incident.aiConclusion}>
-                        {incident.aiConclusion}
-                      </td>
-                      <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
-                          <a
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-blue-600 hover:bg-blue-50 transition-all duration-200"
-                            href="#"
-                          >
-                            <Eye weight="duotone" className="w-3 h-3" />
-                            详情
-                          </a>
-                          <button
-                            onClick={() =>
-                              setSelectedAlert(incidentToAlertItem(incident))
-                            }
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all duration-200 bg-[#00b4d8]/8 text-[#00b4d8] border border-[#00b4d8]/15 hover:bg-[#00b4d8]/15 hover:border-[#00b4d8]/30 hover:shadow-sm hover:shadow-[#00b4d8]/10 active:scale-95"
-                          >
-                            <Brain weight="duotone" className="w-3 h-3" />
-                            AI研判
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            <div className="px-4 py-2.5 border-t border-dashboard-border flex items-center justify-between text-[11px] text-dashboard-text-dim bg-slate-50/30">
-              <p>展示 1-10 条，共 <span className="font-semibold text-dashboard-text-muted">1,284</span> 条记录</p>
-              <div className="flex items-center gap-1.5">
-                <button className="px-2.5 py-1 bg-white border border-dashboard-border text-dashboard-text-muted rounded-md hover:bg-slate-50 disabled:opacity-40 transition-all duration-200 text-[11px]" disabled>
-                  上一页
-                </button>
-                <span className="px-2 text-dashboard-text-muted font-medium">1 / 161</span>
-                <button className="px-2.5 py-1 bg-white border border-dashboard-border text-dashboard-text-muted rounded-md hover:bg-slate-50 transition-all duration-200 text-[11px]">
-                  下一页
-                </button>
+            {/* Table */}
+            <div className="bg-white border border-[#e2e8f0] rounded-xl overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-[#e2e8f0]">
+                    <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">事件 ID</th>
+                    <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">时间戳</th>
+                    <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">事件名称</th>
+                    <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">源 IP / 账户</th>
+                    <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap min-w-[80px]">风险级别</th>
+                    <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">状态</th>
+                    <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">AI 研判结论</th>
+                    <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right whitespace-nowrap min-w-[160px]">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {incidents.map((incident, index) => {
+                    const levelStyle = levelConfig[incident.level];
+                    const statusStyle = statusConfig[incident.status];
+                    const StatusIcon = statusStyle.icon;
+                    const isCritical = incident.level === "CRITICAL";
+                    return (
+                      <tr
+                        key={incident.id}
+                        className={`group transition-all hover:bg-blue-50/30 ${isCritical ? "border-l-[3px] " + levelStyle.accent : ""} ${isCritical ? "bg-red-50/20" : ""}`}
+                      >
+                        <td className="px-4 py-2.5 font-mono text-slate-500 text-[11px] whitespace-nowrap">
+                          {incident.id}
+                        </td>
+                        <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap font-mono text-[11px]">
+                          {incident.time}
+                        </td>
+                        <td className="px-4 py-2.5 font-medium text-slate-900 truncate max-w-[280px]" title={incident.name}>
+                          {incident.name}
+                        </td>
+                        <td className="px-4 py-2.5 text-slate-500 truncate max-w-[160px] font-mono text-[11px]" title={incident.source}>
+                          {incident.source}
+                        </td>
+                        <td className="px-4 py-2.5 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${levelStyle.bg} ${levelStyle.text} border ${levelStyle.border}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${levelStyle.dot} ${isCritical ? "animate-pulse" : ""}`} />
+                            {incident.level}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium ${statusStyle.bg} ${statusStyle.color}`}>
+                            <StatusIcon className={`w-3 h-3 ${incident.status === "研判中" ? "animate-spin" : ""}`} />
+                            {incident.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-slate-500 max-w-[180px] truncate text-[11px]" title={incident.eventDescription}>
+                          {incident.eventDescription}
+                        </td>
+                        <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
+                            <a
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-blue-600 hover:bg-blue-50 transition-all"
+                              href="#"
+                            >
+                              <Eye className="w-3 h-3" />
+                              详情
+                            </a>
+                            <button
+                              onClick={() => setSelectedAlert(incidentToAlertItem(incident))}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all bg-[#00b4d8]/10 text-[#00b4d8] border border-[#00b4d8]/20 hover:bg-[#00b4d8]/20"
+                            >
+                              <Brain className="w-3 h-3" />
+                              AI研判
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="px-4 py-2.5 border-t border-[#e2e8f0] flex items-center justify-between text-[11px] text-slate-500 bg-slate-50/30">
+                <p>展示 1-10 条，共 <span className="font-semibold text-slate-700">1,284</span> 条记录</p>
+                <div className="flex items-center gap-1.5">
+                  <button className="px-2.5 py-1 bg-white border border-[#e2e8f0] text-slate-500 rounded-md hover:bg-slate-50 disabled:opacity-40 text-[11px]" disabled>
+                    上一页
+                  </button>
+                  <span className="px-2 text-slate-700 font-medium">1 / 161</span>
+                  <button className="px-2.5 py-1 bg-white border border-[#e2e8f0] text-slate-500 rounded-md hover:bg-slate-50 text-[11px]">
+                    下一页
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
           </div>
         </main>
       )}

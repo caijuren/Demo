@@ -490,9 +490,158 @@ function generateAnalysisContent(alert: AlertItem) {
     { section: "basic", label: "事件描述", detail: alert.detail },
   ];
 
+  // 如果有结构化数据，使用新的展示方式
+  if (alert.employeeProfile || alert.historicalBehavior || alert.accessSource || 
+      alert.approvalProcess || alert.dataDetails || alert.terminalLogs) {
+    return generateStructuredContent(alert, eventTime, completeTime);
+  }
+
+  // 否则使用旧的生成方式
   const section2 = generateDetailSections(alert, eventTime);
   const logLines = generateLogLines(alert);
   const section4 = generateConclusion(alert, eventTime);
+
+  return { section1, section2, logLines, section3Placeholder: { section: "log", label: "", detail: "" } as StreamItem, section4 };
+}
+
+function generateStructuredContent(alert: AlertItem, eventTime: string, completeTime: string): {
+  section1: StreamItem[];
+  section2: StreamItem[];
+  logLines: string[];
+  section3Placeholder: StreamItem;
+  section4: StreamItem[];
+} {
+  const section1: StreamItem[] = [
+    { section: "basic", label: "事件时间", detail: eventTime },
+    { section: "basic", label: "调查完成时间", detail: completeTime },
+    { section: "basic", label: "事件标题", detail: alert.name },
+    { section: "basic", label: "事件描述", detail: alert.eventDescription || alert.detail },
+  ];
+
+  const section2: StreamItem[] = [];
+
+  // 员工档案
+  if (alert.employeeProfile) {
+    const ep = alert.employeeProfile;
+    section2.push({
+      section: "detail",
+      label: "员工档案",
+      type: 'table',
+      tableData: [
+        { key: "姓名", value: ep.name },
+        { key: "邮箱", value: ep.email },
+        { key: "工号", value: ep.employeeId },
+        { key: "部门", value: ep.department },
+        { key: "岗位", value: ep.position },
+        { key: "入职时间", value: ep.tenure },
+        { key: "直属上级", value: ep.manager },
+        { key: "工作时间", value: ep.workHours },
+      ],
+    });
+  }
+
+  // 历史行为
+  if (alert.historicalBehavior) {
+    const hb = alert.historicalBehavior;
+    section2.push({
+      section: "detail",
+      label: "历史行为分析",
+      type: 'table',
+      tableData: [
+        { key: "统计周期", value: hb.period },
+        { key: "正常访问时间", value: hb.normalAccessTimes },
+        { key: "异常登录次数", value: String(hb.abnormalLoginCount) },
+        { key: "数据导出历史", value: hb.dataExportHistory },
+        { key: "是否首次告警", value: hb.firstAlert ? "是" : "否" },
+      ],
+    });
+  }
+
+  // 访问来源
+  if (alert.accessSource) {
+    const as = alert.accessSource;
+    section2.push({
+      section: "detail",
+      label: "访问来源",
+      type: 'table',
+      tableData: [
+        { key: "IP 地址", value: as.ip },
+        { key: "设备", value: as.device },
+        { key: "是否 VPN", value: as.isVpn ? "是" : "否" },
+        { key: "使用工具", value: as.tool },
+      ],
+    });
+  }
+
+  // 数据详情
+  if (alert.dataDetails) {
+    const dd = alert.dataDetails;
+    section2.push({
+      section: "detail",
+      label: "数据详情",
+      type: 'table',
+      tableData: [
+        { key: "记录数", value: String(dd.recordCount) },
+        { key: "数据大小", value: dd.dataSize },
+        { key: "敏感字段", value: dd.sensitiveFields.join(", ") },
+      ],
+    });
+  }
+
+  // 审批流程
+  if (alert.approvalProcess) {
+    const ap = alert.approvalProcess;
+    section2.push({
+      section: "detail",
+      label: "审批流程",
+      type: 'table',
+      tableData: [
+        { key: "提交时间", value: ap.submitTime },
+        { key: "审批人", value: ap.approver },
+        { key: "用途", value: ap.purpose },
+        { key: "归档时间", value: ap.archiveTime },
+        { key: "原因", value: ap.reason },
+      ],
+    });
+  }
+
+  // 终端日志
+  const logLines: string[] = [];
+  if (alert.terminalLogs && alert.terminalLogs.length > 0) {
+    alert.terminalLogs.forEach((log, index) => {
+      if (index > 0) logLines.push('---');
+      logLines.push(`${log.timestamp} ${log.source} ${log.process}:`);
+      logLines.push(log.message);
+      logLines.push(log.raw);
+    });
+  } else {
+    logLines.push("暂无终端日志数据");
+  }
+
+  // 综合结论
+  const section4: StreamItem[] = [];
+  
+  if (alert.comprehensiveAssessment) {
+    section4.push({
+      section: "conclusion",
+      label: "综合评估",
+      type: 'block',
+      highlight: 'red',
+      detail: alert.comprehensiveAssessment,
+    });
+  }
+
+  if (alert.handlingMeasures && alert.handlingMeasures.length > 0) {
+    section4.push({
+      section: "conclusion",
+      label: "处置措施",
+      type: 'table',
+      tableData: alert.handlingMeasures.map((measure, index) => ({
+        key: `${index + 1}.`,
+        value: measure,
+      })),
+    });
+  }
 
   return { section1, section2, logLines, section3Placeholder: { section: "log", label: "", detail: "" } as StreamItem, section4 };
 }
