@@ -166,18 +166,15 @@ const incidents: Incident[] = [
     id: "INC-2026-0814",
     time: "04-15 16:45:16",
     name: "非工作时间大规模数据下载",
-    source: "User: chenwei@kiiik.com",
+    source: "User: xubo@kiiik.com",
     level: "MEDIUM",
     status: "已处置",
-    eventDescription: "用户陈伟于凌晨 02:15 从 CRM 系统批量导出客户数据，涉及 23,847 条记录",
+    eventDescription: "用户许博于凌晨 02:15 从 CRM 系统批量导出客户数据，涉及 23,847 条记录",
     employeeProfile: {
-      name: "陈伟",
-      email: "chenwei@kiiik.com",
-      employeeId: "EMP-2023-0847",
-      department: "市场部",
-      position: "高级数据分析师",
-      tenure: "2年3个月",
-      manager: "市场总监李明",
+      name: "许博",
+      email: "xubo@kiiik.com",
+      department: "运维部",
+      position: "运维工程师",
       workHours: "09:00-18:00"
     },
     historicalBehavior: {
@@ -195,10 +192,9 @@ const incidents: Incident[] = [
     },
     approvalProcess: {
       submitTime: "04-14 18:30",
-      approver: "市场总监李明",
-      purpose: "季度客户流失分析",
+      purpose: "系统运维数据备份",
       archiveTime: "04-15 09:00",
-      reason: "项目截止紧急，提前执行数据提取"
+      reason: "运维窗口期紧急备份，提前执行数据导出"
     },
     dataDetails: {
       recordCount: 23847,
@@ -218,14 +214,14 @@ const incidents: Incident[] = [
         source: "crm-app",
         process: "nginx",
         message: "POST /api/auth/login HTTP/1.1 200",
-        raw: "2026-04-15T02:15:28.412+08:00 crm-app nginx[4521]: 10.8.12.45 - chenwei [15/Apr/2026:02:15:28 +0800] \"POST /api/auth/login HTTP/1.1\" 200 847 \"-\" \"python-requests/2.28.1\" rt=0.234 ua=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\""
+        raw: "2026-04-15T02:15:28.412+08:00 crm-app nginx[4521]: 10.8.12.45 - xubo [15/Apr/2026:02:15:28 +0800] \"POST /api/auth/login HTTP/1.1\" 200 847 \"-\" \"python-requests/2.28.1\" rt=0.234 ua=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\""
       },
       {
         timestamp: "Apr 15 02:15:33",
         source: "crm-app",
         process: "nginx",
         message: "GET /api/v1/customers/export?limit=50000 HTTP/1.1 200",
-        raw: "2026-04-15T02:15:33.789+08:00 crm-app nginx[4521]: 10.8.12.45 - chenwei [15/Apr/2026:02:15:33 +0800] \"GET /api/v1/customers/export?limit=50000&format=csv HTTP/1.1\" 200 18475632 \"-\" \"python-requests/2.28.1\" rt=45.123 ua=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\" request_length=23 response_length=18475632"
+        raw: "2026-04-15T02:15:33.789+08:00 crm-app nginx[4521]: 10.8.12.45 - xubo [15/Apr/2026:02:15:33 +0800] \"GET /api/v1/customers/export?limit=50000&format=csv HTTP/1.1\" 200 18475632 \"-\" \"python-requests/2.28.1\" rt=45.123 ua=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\" request_length=23 response_length=18475632"
       },
       {
         timestamp: "Apr 15 02:15:34",
@@ -239,7 +235,7 @@ const incidents: Incident[] = [
         source: "dlp-agent",
         process: "dlp-monitor",
         message: "ALERT: Large data export detected",
-        raw: "2026-04-15T02:16:18.445+08:00 dlp-agent dlp-monitor[8912]: ALERT [POLICY_ID=DATA_EXPORT_001] [SEVERITY=MEDIUM] User=chenwei@kiiik.com SourceIP=10.8.12.45 Endpoint=PC-0089 Operation=DATA_EXPORT Records=23847 Size=18.4MB Destination=/home/chenwei/exports/customers_20260415.csv PolicyViolation=NON_WORK_HOURS_SENSITIVE_DATA_ACCESS"
+        raw: "2026-04-15T02:16:18.445+08:00 dlp-agent dlp-monitor[8912]: ALERT [POLICY_ID=DATA_EXPORT_001] [SEVERITY=MEDIUM] User=xubo@kiiik.com SourceIP=10.8.12.45 Endpoint=PC-0089 Operation=DATA_EXPORT Records=23847 Size=18.4MB Destination=/home/xubo/exports/customers_20260415.csv PolicyViolation=NON_WORK_HOURS_SENSITIVE_DATA_ACCESS"
       }
     ]
   },

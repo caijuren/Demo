@@ -523,20 +523,24 @@ function generateStructuredContent(alert: AlertItem, eventTime: string, complete
   // 员工档案
   if (alert.employeeProfile) {
     const ep = alert.employeeProfile;
+    const tableData: { key: string; value: string }[] = [
+      { key: "姓名", value: ep.name },
+      { key: "邮箱", value: ep.email },
+    ];
+    if (ep.employeeId) tableData.push({ key: "工号", value: ep.employeeId });
+    tableData.push(
+      { key: "部门", value: ep.department },
+      { key: "岗位", value: ep.position },
+    );
+    if (ep.tenure) tableData.push({ key: "入职时间", value: ep.tenure });
+    if (ep.manager) tableData.push({ key: "直属上级", value: ep.manager });
+    tableData.push({ key: "工作时间", value: ep.workHours });
+
     section2.push({
       section: "detail",
       label: "员工档案",
       type: 'table',
-      tableData: [
-        { key: "姓名", value: ep.name },
-        { key: "邮箱", value: ep.email },
-        { key: "工号", value: ep.employeeId },
-        { key: "部门", value: ep.department },
-        { key: "岗位", value: ep.position },
-        { key: "入职时间", value: ep.tenure },
-        { key: "直属上级", value: ep.manager },
-        { key: "工作时间", value: ep.workHours },
-      ],
+      tableData,
     });
   }
 
@@ -591,17 +595,21 @@ function generateStructuredContent(alert: AlertItem, eventTime: string, complete
   // 审批流程
   if (alert.approvalProcess) {
     const ap = alert.approvalProcess;
+    const tableData: { key: string; value: string }[] = [
+      { key: "提交时间", value: ap.submitTime },
+    ];
+    if (ap.approver) tableData.push({ key: "审批人", value: ap.approver });
+    tableData.push(
+      { key: "用途", value: ap.purpose },
+      { key: "归档时间", value: ap.archiveTime },
+      { key: "原因", value: ap.reason },
+    );
+
     section2.push({
       section: "detail",
       label: "审批流程",
       type: 'table',
-      tableData: [
-        { key: "提交时间", value: ap.submitTime },
-        { key: "审批人", value: ap.approver },
-        { key: "用途", value: ap.purpose },
-        { key: "归档时间", value: ap.archiveTime },
-        { key: "原因", value: ap.reason },
-      ],
+      tableData,
     });
   }
 
