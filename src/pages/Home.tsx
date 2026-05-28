@@ -33,11 +33,11 @@ interface LogEntry {
 interface EmployeeProfile {
   name: string;
   email: string;
-  employeeId: string;
+  employeeId?: string;
   department: string;
   position: string;
-  tenure: string;
-  manager: string;
+  tenure?: string;
+  manager?: string;
   workHours: string;
 }
 
@@ -67,7 +67,7 @@ interface Incident {
   };
   approvalProcess?: {
     submitTime: string;
-    approver: string;
+    approver?: string;
     purpose: string;
     archiveTime: string;
     reason: string;
