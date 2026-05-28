@@ -144,7 +144,7 @@ const incidents: Incident[] = [
         source: "mail-gateway",
         process: "postfix",
         message: "Received phishing email from external-host.xyz",
-        raw: "2026-03-29T14:06:15.234+08:00 mail-gateway postfix/smtpd[4521]: NOQUEUE: reject: RCPT from unknown[185.220.101.47]: 554 5.7.1 Service unavailable; Client host [185.220.101.47] blocked using zen.spamhaus.org; https://www.spamhaus.org/query/ip/185.220.101.47; from=<it-support@external-host.xyz> to=<zhangsan@corp.com> proto=ESMTP helo=<mail.external-host.xyz>"
+        raw: "2026-03-29T14:06:15.234+08:00 mail-gateway postfix/smtpd[4521]: NOQUEUE: reject: RCPT from unknown[185.220.101.47]: 554 5.7.1 Service unavailable; Client host [185.220.101.47] blocked using zen.spamhaus.org; https://www.spamhaus.org/query/ip/185.220.101.47; from=<it-support@external-host.xyz> to=<zhangsan@kiiik.com> proto=ESMTP helo=<mail.external-host.xyz>"
       },
       {
         timestamp: "Mar 29 14:06:29",
@@ -166,13 +166,13 @@ const incidents: Incident[] = [
     id: "INC-2026-0814",
     time: "04-15 16:45:16",
     name: "非工作时间大规模数据下载",
-    source: "User: chenwei@corp.com",
+    source: "User: chenwei@kiiik.com",
     level: "MEDIUM",
     status: "已处置",
     eventDescription: "用户陈伟于凌晨 02:15 从 CRM 系统批量导出客户数据，涉及 23,847 条记录",
     employeeProfile: {
       name: "陈伟",
-      email: "chenwei@corp.com",
+      email: "chenwei@kiiik.com",
       employeeId: "EMP-2023-0847",
       department: "市场部",
       position: "高级数据分析师",
@@ -239,7 +239,7 @@ const incidents: Incident[] = [
         source: "dlp-agent",
         process: "dlp-monitor",
         message: "ALERT: Large data export detected",
-        raw: "2026-04-15T02:16:18.445+08:00 dlp-agent dlp-monitor[8912]: ALERT [POLICY_ID=DATA_EXPORT_001] [SEVERITY=MEDIUM] User=chenwei@corp.com SourceIP=10.8.12.45 Endpoint=PC-0089 Operation=DATA_EXPORT Records=23847 Size=18.4MB Destination=/home/chenwei/exports/customers_20260415.csv PolicyViolation=NON_WORK_HOURS_SENSITIVE_DATA_ACCESS"
+        raw: "2026-04-15T02:16:18.445+08:00 dlp-agent dlp-monitor[8912]: ALERT [POLICY_ID=DATA_EXPORT_001] [SEVERITY=MEDIUM] User=chenwei@kiiik.com SourceIP=10.8.12.45 Endpoint=PC-0089 Operation=DATA_EXPORT Records=23847 Size=18.4MB Destination=/home/chenwei/exports/customers_20260415.csv PolicyViolation=NON_WORK_HOURS_SENSITIVE_DATA_ACCESS"
       }
     ]
   },
@@ -527,21 +527,21 @@ const incidents: Incident[] = [
         source: "waf01",
         process: "modsecurity",
         message: "Access denied with code 403 (phase 2). SQL Injection Attack Detected",
-        raw: "2026-03-18T08:02:15.234+08:00 waf01 modsecurity[8912]: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:union\\s*select)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"47\"] [id \"942100\"] [msg \"SQL Injection Attack Detected\"] [data \"Matched Data: UNION SELECT found within ARGS:query: 1' UNION SELECT version(),user(),database()-- \"] [severity \"CRITICAL\"] [hostname \"oa.corp.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcdef\"]"
+        raw: "2026-03-18T08:02:15.234+08:00 waf01 modsecurity[8912]: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:union\\s*select)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"47\"] [id \"942100\"] [msg \"SQL Injection Attack Detected\"] [data \"Matched Data: UNION SELECT found within ARGS:query: 1' UNION SELECT version(),user(),database()-- \"] [severity \"CRITICAL\"] [hostname \"oa.kiiik.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcdef\"]"
       },
       {
         timestamp: "Mar 18 08:02:16",
         source: "waf01",
         process: "modsecurity",
         message: "Access denied with code 403 (phase 2). SQL Injection Attack Detected",
-        raw: "2026-03-18T08:02:16.567+08:00 waf01 modsecurity[8912]: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:select\\s*sleep)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"52\"] [id \"942160\"] [msg \"SQL Injection Attack Detected - Time-based Blind SQLi\"] [data \"Matched Data: SELECT SLEEP found within ARGS:query: 1' AND (SELECT * FROM (SELECT(SLEEP(5)))a)-- \"] [severity \"CRITICAL\"] [hostname \"oa.corp.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcd01\"]"
+        raw: "2026-03-18T08:02:16.567+08:00 waf01 modsecurity[8912]: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:select\\s*sleep)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"52\"] [id \"942160\"] [msg \"SQL Injection Attack Detected - Time-based Blind SQLi\"] [data \"Matched Data: SELECT SLEEP found within ARGS:query: 1' AND (SELECT * FROM (SELECT(SLEEP(5)))a)-- \"] [severity \"CRITICAL\"] [hostname \"oa.kiiik.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcd01\"]"
       },
       {
         timestamp: "Mar 18 08:02:17",
         source: "waf01",
         process: "modsecurity",
         message: "Access denied with code 403 (phase 2). SQL Injection Attack Detected",
-        raw: "2026-03-18T08:02:17.890+08:00 waf01 modsecurity[8912]: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:information_schema)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"58\"] [id \"942200\"] [msg \"SQL Injection Attack Detected - Schema Enumeration\"] [data \"Matched Data: information_schema found within ARGS:query: 1' UNION SELECT table_name,column_name FROM information_schema.columns WHERE table_schema=database()-- \"] [severity \"CRITICAL\"] [hostname \"oa.corp.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcd02\"]"
+        raw: "2026-03-18T08:02:17.890+08:00 waf01 modsecurity[8912]: [client 45.142.212.89] ModSecurity: Access denied with code 403 (phase 2). Pattern match \"(?i:information_schema)\" at ARGS:query. [file \"/etc/modsecurity/rules/sql_injection.conf\"] [line \"58\"] [id \"942200\"] [msg \"SQL Injection Attack Detected - Schema Enumeration\"] [data \"Matched Data: information_schema found within ARGS:query: 1' UNION SELECT table_name,column_name FROM information_schema.columns WHERE table_schema=database()-- \"] [severity \"CRITICAL\"] [hostname \"oa.kiiik.com\"] [uri \"/api/report/export\"] [unique_id \"Y1234567890abcd02\"]"
       },
       {
         timestamp: "Mar 18 08:02:18",

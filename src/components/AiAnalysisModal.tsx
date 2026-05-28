@@ -765,7 +765,7 @@ function generateDetailSections(alert: AlertItem, eventTime: string): StreamItem
       },
       {
         section: "detail", label: "4. 受影响账户风险", type: 'table', tableData: [
-          { key: "已识别点击用户", value: "张三、李四、王五" },
+          { key: "已识别点击用户", value: "张明远、李志强、王浩" },
           { key: "凭证是否泄露", value: "尚未确认提交" },
           { key: "建议操作", value: "即时重置密码、检查MFA状态" },
         ],
